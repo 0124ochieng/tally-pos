@@ -34,8 +34,8 @@ export function ActivationGate({ onActivated }: { onActivated: () => void }) {
           <span className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gold-100 text-gold-700">
             <ShieldCheck size={22} />
           </span>
-          <h1 className="text-xl font-bold text-ink">Activate {getBusinessName()} POS</h1>
-          <p className="mt-1 text-sm text-ink-secondary">Enter the license key you received to set up this computer.</p>
+          <h1 className="text-xl font-bold text-ink">Set Up {getBusinessName()} POS</h1>
+          <p className="mt-1 text-sm text-ink-secondary">Type in the license key you were given to unlock this computer.</p>
         </div>
 
         <Label>License Key</Label>

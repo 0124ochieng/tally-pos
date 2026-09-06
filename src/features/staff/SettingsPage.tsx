@@ -66,8 +66,8 @@ export function SettingsPage() {
         <CardBody className="flex items-center justify-between">
           <p className="text-sm text-ink-secondary">
             {cloudConfigured
-              ? 'Connected — data syncs to your Supabase project automatically.'
-              : 'Running fully offline against local storage. No cloud backend is connected.'}
+              ? 'Connected — your data automatically backs up to the cloud.'
+              : 'Everything is saved right here on this computer. No internet needed to use the app.'}
           </p>
           <Badge tone={cloudConfigured ? 'gold' : 'coral'}>{cloudConfigured ? 'Connected' : 'Offline-only'}</Badge>
         </CardBody>

@@ -36,7 +36,7 @@ export function ExpensesPage() {
 
   async function handleSubmit() {
     if (!categoryId || amount <= 0 || !description.trim()) {
-      show('Select a category and enter an amount and description', 'error')
+      show('Pick a category, and fill in the amount and description', 'error')
       return
     }
     await recordExpense({
@@ -88,11 +88,11 @@ export function ExpensesPage() {
               <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="e.g. Lunch for staff" />
             </div>
             <div>
-              <Label>Paid Via</Label>
+              <Label>How Was It Paid?</Label>
               <Select value={paidVia} onChange={(e) => setPaidVia(e.target.value as PaidVia)}>
-                <option value="cash">Cash (deducts from drawer)</option>
-                <option value="mpesa">M-Pesa (deducts from till)</option>
-                <option value="credit">Credit / Not Yet Paid</option>
+                <option value="cash">Cash (comes out of the drawer)</option>
+                <option value="mpesa">M-Pesa (comes out of the till)</option>
+                <option value="credit">On Credit (Not Paid Yet)</option>
               </Select>
             </div>
             <Button className="w-full" onClick={handleSubmit}>Record Expense</Button>
@@ -108,7 +108,7 @@ export function ExpensesPage() {
                   <th className="py-2">Date</th>
                   <th className="py-2">Description</th>
                   <th className="py-2">Category</th>
-                  <th className="py-2">Paid Via</th>
+                  <th className="py-2">How Paid</th>
                   <th className="py-2 text-right">Amount</th>
                 </tr>
               </thead>
@@ -127,7 +127,7 @@ export function ExpensesPage() {
                 ))}
               </tbody>
             </table>
-            {sorted.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No expenses recorded yet.</p>}
+            {sorted.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No expenses yet.</p>}
           </CardBody>
         </Card>
       </div>

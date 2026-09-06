@@ -27,7 +27,7 @@ function getFieldDefs(categoryById: Map<string, string>) {
     { key: 'costPrice' as const, label: 'Cost Price', format: money },
     { key: 'unit' as const, label: 'Unit' },
     { key: 'stock' as const, label: 'Stock' },
-    { key: 'lowStockThreshold' as const, label: 'Low Stock Threshold' },
+    { key: 'lowStockThreshold' as const, label: 'Low Stock Warning Level' },
     { key: 'isSerialized' as const, label: 'Serialized', format: yesNo },
   ]
 }
@@ -60,17 +60,17 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
 
   async function handleSave() {
     if (!form.name.trim() || form.sellingPrice <= 0 || !form.categoryId) {
-      show('Name, category and a valid selling price are required', 'error')
+      show('Fill in a name, category, and a selling price above 0', 'error')
       return
     }
     if (form.costPrice < 0 || form.lowStockThreshold < 0) {
-      show('Cost price and low stock threshold cannot be negative', 'error')
+      show("Cost price and low stock warning level can't be less than 0", 'error')
       return
     }
     if (!isEdit) {
       const trimmedSku = form.sku.trim().toLowerCase()
       if (trimmedSku && products.some((p) => p.sku.toLowerCase() === trimmedSku)) {
-        show('That SKU is already in use by another product', 'error')
+        show('Another product already uses that SKU', 'error')
         return
       }
     }
@@ -179,7 +179,7 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
           </p>
         </div>
         <div>
-          <Label>Low Stock Threshold</Label>
+          <Label>Low Stock Warning Level</Label>
           <Input type="number" min={0} value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: Number(e.target.value) })} />
         </div>
         <div className="col-span-2 flex items-center gap-2">

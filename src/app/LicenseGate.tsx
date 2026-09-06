@@ -41,9 +41,8 @@ export function LicenseGate({ children }: { children: ReactNode }) {
         const hydration = await hydrateFromCloudIfAvailable()
         if (hydration === 'unavailable') {
           throw new Error(
-            'Could not verify your existing data against the cloud before starting up. ' +
-              'Connect to the internet and restart — this only happens once when local data is missing, ' +
-              'to make sure nothing gets overwritten with a blank slate by mistake.',
+            "Couldn't check your data before starting up. Connect to the internet and restart — " +
+              "this only happens once, when there's no local data yet, so nothing gets wiped by mistake.",
           )
         }
         if (hydration === 'confirmed-empty') {

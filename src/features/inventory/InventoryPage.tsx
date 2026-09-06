@@ -129,7 +129,7 @@ export function InventoryPage() {
       <ConfirmDialog
         open={confirming !== null}
         title="Remove Product"
-        message={`Remove "${confirming?.name}"? You can undo this for a few seconds after removing.`}
+        message={`Remove "${confirming?.name}"? You'll have a few seconds to undo it right after.`}
         confirmLabel="Remove"
         destructive
         onConfirm={confirmRemove}

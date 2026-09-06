@@ -42,7 +42,7 @@ export function ExpenseCategoryManager() {
 
   async function handleSave() {
     if (!name.trim()) {
-      show('Category name is required', 'error')
+      show('Type in a category name', 'error')
       return
     }
     const now = Date.now()
@@ -70,12 +70,12 @@ export function ExpenseCategoryManager() {
 
   function handleDelete(c: ExpenseCategory) {
     if (c.protected) {
-      show(`"${c.name}" is a built-in category and can't be deleted`, 'error')
+      show(`"${c.name}" is a built-in category — it can't be deleted`, 'error')
       return
     }
     const count = expenses.filter((e) => e.categoryId === c.id).length
     if (count > 0) {
-      show(`${count} expense(s) use "${c.name}" — reassign or remove them first`, 'error')
+      show(`${count} expense(s) still use "${c.name}" — move or remove them first`, 'error')
       return
     }
     setConfirming(c)
@@ -161,7 +161,7 @@ export function ExpenseCategoryManager() {
       <ConfirmDialog
         open={confirming !== null}
         title="Remove Expense Category"
-        message={`Remove "${confirming?.name}"? You can undo this for a few seconds after removing.`}
+        message={`Remove "${confirming?.name}"? You'll have a few seconds to undo it right after.`}
         confirmLabel="Remove"
         destructive
         onConfirm={confirmDelete}

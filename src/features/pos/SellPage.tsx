@@ -34,7 +34,7 @@ export function SellPage() {
   // Admin) rather than silently discarding items already on the counter.
   useEffect(() => {
     if (cart.length > 0) {
-      show(`Resumed previous sale — ${cart.length} item${cart.length === 1 ? '' : 's'} restored`, 'info')
+      show(`Picked up where you left off — ${cart.length} item${cart.length === 1 ? '' : 's'} still in the cart`, 'info')
     }
     // Only on mount: this greets a resumed session once, not on every cart edit.
     // eslint-disable-next-line react-hooks/exhaustive-deps

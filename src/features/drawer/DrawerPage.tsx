@@ -23,7 +23,7 @@ export function DrawerPage() {
 
   async function handleSubmit() {
     if (amount <= 0) {
-      show('Enter a valid amount', 'error')
+      show('Enter an amount above 0', 'error')
       return
     }
     const entry = { id: newId(), type, amount, recordedBy: user!.name, note, createdAt: Date.now() }
@@ -54,7 +54,7 @@ export function DrawerPage() {
 
       {lastClosingCount && variance != null && (
         <Card>
-          <CardHeader><CardTitle>Last Till Reconciliation</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Last Till Count</CardTitle></CardHeader>
           <CardBody>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div>
@@ -66,7 +66,7 @@ export function DrawerPage() {
                 <p className="text-lg font-bold text-ink">KES {lastClosingCount.amount.toLocaleString()}</p>
               </div>
               <div>
-                <p className="text-xs text-ink-muted">{variance === 0 ? 'Balanced' : variance > 0 ? 'Overage' : 'Shortage'}</p>
+                <p className="text-xs text-ink-muted">{variance === 0 ? 'Matched' : variance > 0 ? 'Extra Cash' : 'Missing Cash'}</p>
                 <p className={`text-lg font-bold ${variance === 0 ? 'text-ink' : variance > 0 ? 'text-gold-700 dark:text-gold-400' : 'text-coral-600 dark:text-coral-400'}`}>
                   KES {Math.abs(variance).toLocaleString()}
                 </p>
@@ -81,7 +81,7 @@ export function DrawerPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-1">
-          <CardHeader><CardTitle>Record Cash Movement</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Add a Cash Entry</CardTitle></CardHeader>
           <CardBody className="space-y-4">
             <div>
               <Label>Type</Label>

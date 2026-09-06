@@ -32,7 +32,7 @@ export function Login() {
       const result = await login(next)
       setSubmitting(false)
       if (!result.ok) {
-        setError(result.error ?? 'Login failed')
+        setError(result.error ?? "That didn't work. Try again.")
         setPin('')
       }
     }

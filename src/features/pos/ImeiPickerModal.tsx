@@ -10,8 +10,8 @@ interface ImeiPickerModalProps {
 
 export function ImeiPickerModal({ product, serials, onClose, onSelect }: ImeiPickerModalProps) {
   return (
-    <Modal open onClose={onClose} title={`Select unit — ${product.name}`}>
-      {serials.length === 0 && <p className="text-sm text-ink-muted">No units with recorded IMEI in stock.</p>}
+    <Modal open onClose={onClose} title={`Pick One — ${product.name}`}>
+      {serials.length === 0 && <p className="text-sm text-ink-muted">No IMEI numbers in stock for this product.</p>}
       <div className="space-y-2">
         {serials.map((s) => (
           <button

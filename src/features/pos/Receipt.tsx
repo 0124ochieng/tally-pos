@@ -36,7 +36,7 @@ export function Receipt({ sale }: { sale: Sale }) {
       <p>Payment: {sale.paymentMethod === 'cash' ? 'Cash' : 'M-Pesa'}</p>
       {sale.paymentMethod === 'cash' && sale.amountTendered != null && (
         <>
-          <div className="flex justify-between"><span>Tendered</span><span>KES {sale.amountTendered.toLocaleString()}</span></div>
+          <div className="flex justify-between"><span>Cash Given</span><span>KES {sale.amountTendered.toLocaleString()}</span></div>
           <div className="flex justify-between"><span>Change</span><span>KES {(sale.changeGiven ?? 0).toLocaleString()}</span></div>
         </>
       )}

@@ -70,13 +70,13 @@ export function StockIntakePage() {
 
   async function handleSubmit() {
     if (!selectedProduct || quantity <= 0) {
-      show('Select a product and a valid quantity', 'error')
+      show('Pick a product and enter a quantity above 0', 'error')
       return
     }
     if (selectedProduct.isSerialized) {
       const list = imeis.split('\n').map((s) => s.trim()).filter(Boolean)
       if (list.length !== quantity) {
-        show(`Enter exactly ${quantity} IMEI number(s), one per line`, 'error')
+        show(`Type in exactly ${quantity} IMEI number(s), one per line`, 'error')
         return
       }
     }
@@ -113,7 +113,7 @@ export function StockIntakePage() {
       })
     }
 
-    show('Stock intake recorded')
+    show('Stock added')
     setQuantity(1)
     setNote('')
     setImeis('')
@@ -122,7 +122,7 @@ export function StockIntakePage() {
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <Card className="lg:col-span-1">
-        <CardHeader><CardTitle>Record New Stock</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Add New Stock</CardTitle></CardHeader>
         <CardBody className="space-y-4">
           <div>
             <Label>Product</Label>
@@ -147,15 +147,15 @@ export function StockIntakePage() {
             <Input type="number" value={costPrice} onChange={(e) => setCostPrice(Number(e.target.value))} />
           </div>
           <div>
-            <Label>Paid Via</Label>
+            <Label>How Was It Paid?</Label>
             <Select value={paidVia} onChange={(e) => setPaidVia(e.target.value as PaidVia)}>
-              <option value="credit">Credit / Not Yet Paid</option>
-              <option value="cash">Cash (deducts from drawer)</option>
-              <option value="mpesa">M-Pesa (deducts from till)</option>
+              <option value="credit">On Credit (Not Paid Yet)</option>
+              <option value="cash">Cash (comes out of the drawer)</option>
+              <option value="mpesa">M-Pesa (comes out of the till)</option>
             </Select>
             {quantity > 0 && costPrice > 0 && (
               <p className="mt-1 text-xs text-ink-muted">
-                Logs an expense of KES {(quantity * costPrice).toLocaleString()} under Inventory Purchases.
+                This adds a KES {(quantity * costPrice).toLocaleString()} expense under Inventory Purchases.
               </p>
             )}
           </div>
@@ -179,7 +179,7 @@ export function StockIntakePage() {
       </Card>
 
       <Card className="lg:col-span-2">
-        <CardHeader><CardTitle>Recent Intakes</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Recently Added Stock</CardTitle></CardHeader>
         <CardBody>
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-ink-muted">
@@ -188,7 +188,7 @@ export function StockIntakePage() {
                 <th className="py-2">Product</th>
                 <th className="py-2 text-right">Qty</th>
                 <th className="py-2 text-right">Cost/Unit</th>
-                <th className="py-2">Paid Via</th>
+                <th className="py-2">How Paid</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -203,7 +203,7 @@ export function StockIntakePage() {
               ))}
             </tbody>
           </table>
-          {intakes.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No stock intakes recorded yet.</p>}
+          {intakes.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No stock added yet.</p>}
         </CardBody>
       </Card>
 

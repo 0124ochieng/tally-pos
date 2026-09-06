@@ -38,7 +38,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
       setStep('receipt')
       show('Sale completed — cash')
     } catch (err) {
-      show(err instanceof Error ? err.message : 'Could not complete sale', 'error')
+      show(err instanceof Error ? err.message : "Couldn't complete the sale", 'error')
     }
   }
 
@@ -51,7 +51,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
       setStep('receipt')
       show('Sale completed — M-Pesa')
     } catch (err) {
-      show(err instanceof Error ? err.message : 'Could not complete sale', 'error')
+      show(err instanceof Error ? err.message : "Couldn't complete the sale", 'error')
     } finally {
       setConfirming(false)
     }
@@ -89,7 +89,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-100 text-gold-700"><Banknote size={20} /></span>
             <span>
               <span className="block text-sm font-semibold text-ink">Cash</span>
-              <span className="block text-xs text-ink-muted">Enter amount tendered, get change</span>
+              <span className="block text-xs text-ink-muted">Type how much they paid, and we'll work out their change</span>
             </span>
           </button>
 
@@ -100,7 +100,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700"><Smartphone size={20} /></span>
             <span>
               <span className="block text-sm font-semibold text-ink">M-Pesa</span>
-              <span className="block text-xs text-ink-muted">Confirm once payment message is received</span>
+              <span className="block text-xs text-ink-muted">Confirm once the payment text comes in</span>
             </span>
           </button>
         </div>
@@ -114,7 +114,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-ink-secondary">Amount Tendered</label>
+            <label className="mb-1 block text-sm font-medium text-ink-secondary">How Much They Paid</label>
             <input
               type="number"
               value={tendered || ''}
@@ -156,7 +156,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
             <span className="text-lg font-bold text-ink">KES {total.toLocaleString()}</span>
           </div>
           <p className="text-sm text-ink-secondary">
-            Once the customer's M-Pesa payment message has been received on the till phone, tap confirm to complete the sale.
+            Once the M-Pesa text comes in on the till phone, tap the button below to finish the sale.
           </p>
           <Button className="w-full" size="lg" disabled={confirming} onClick={finalizeMpesa}>
             <CheckCircle2 size={18} /> {confirming ? 'Confirming…' : 'Confirm Payment Received'}

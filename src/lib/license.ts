@@ -68,7 +68,7 @@ export async function checkLicense(): Promise<LicenseState> {
 
 export async function activateWithKey(licenseKey: string): Promise<{ ok: true } | { ok: false; error: string }> {
   if (!ACTIVATION_ENDPOINT) {
-    return { ok: false, error: 'Activation service is not configured. Contact support.' }
+    return { ok: false, error: "Setup isn't ready yet. Contact support for help." }
   }
   const deviceId = await getMachineId()
 
@@ -80,12 +80,12 @@ export async function activateWithKey(licenseKey: string): Promise<{ ok: true } 
       body: JSON.stringify({ licenseKey, deviceId }),
     })
   } catch {
-    return { ok: false, error: 'Could not reach the activation server. Check your internet connection and try again.' }
+    return { ok: false, error: "Couldn't connect to the internet. Check your connection and try again." }
   }
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    return { ok: false, error: body.error ?? 'Activation failed. Check your license key and try again.' }
+    return { ok: false, error: body.error ?? "That didn't work. Check your license key and try again." }
   }
 
   const { certString, signatureB64 } = await response.json()
@@ -93,7 +93,7 @@ export async function activateWithKey(licenseKey: string): Promise<{ ok: true } 
 
   const verified = await verifyStored(stored, deviceId)
   if (!verified) {
-    return { ok: false, error: 'The activation server returned an invalid certificate. Contact support.' }
+    return { ok: false, error: 'Something went wrong on our end. Contact support for help.' }
   }
 
   await writeActivation(stored)

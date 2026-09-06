@@ -114,7 +114,7 @@ export function HistoryPage() {
       setVoiding(null)
       setVoidReason('')
     } catch (err) {
-      show(err instanceof Error ? err.message : 'Could not void sale', 'error')
+      show(err instanceof Error ? err.message : "Couldn't void the sale", 'error')
     } finally {
       setVoidBusy(false)
     }
@@ -199,7 +199,7 @@ export function HistoryPage() {
                 </div>
               )
             })}
-            {filtered.length === 0 && <p className="py-8 text-center text-sm text-ink-muted">No activity recorded yet.</p>}
+            {filtered.length === 0 && <p className="py-8 text-center text-sm text-ink-muted">No activity yet.</p>}
           </div>
         </CardBody>
       </Card>
@@ -207,7 +207,7 @@ export function HistoryPage() {
       <ConfirmDialog
         open={restoring !== null}
         title="Restore Version"
-        message={`Restore "${restoring?.entityName}" to its state from ${restoring ? new Date(restoring.createdAt).toLocaleString() : ''}?`}
+        message={`Bring back "${restoring?.entityName}" the way it was on ${restoring ? new Date(restoring.createdAt).toLocaleString() : ''}?`}
         confirmLabel="Restore"
         onConfirm={handleRestore}
         onCancel={() => setRestoring(null)}
@@ -221,8 +221,8 @@ export function HistoryPage() {
           </>
         }>
           <p className="text-sm text-ink-secondary">
-            This reverses the sale: restocks the {voiding.items.length} item{voiding.items.length === 1 ? '' : 's'} sold and removes
-            KES {voiding.total.toLocaleString()} from the {voiding.paymentMethod === 'cash' ? 'cash drawer' : 'M-Pesa till'}. This cannot be undone.
+            This cancels the sale. It puts the {voiding.items.length} item{voiding.items.length === 1 ? '' : 's'} back in stock and takes
+            KES {voiding.total.toLocaleString()} back out of the {voiding.paymentMethod === 'cash' ? 'cash drawer' : 'M-Pesa till'}. You can't undo this.
           </p>
           <div className="mt-4">
             <Label>Reason (optional, recommended)</Label>
