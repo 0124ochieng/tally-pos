@@ -1,0 +1,127 @@
+@import "tailwindcss";
+@import "@fontsource-variable/plus-jakarta-sans";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Plus Jakarta Sans Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Gold — primary brand */
+  --color-gold-50: #fefbf0;
+  --color-gold-100: #fdf1cf;
+  --color-gold-200: #fbe29c;
+  --color-gold-300: #f8d066;
+  --color-gold-400: #f5c542;
+  --color-gold-500: #eab627;
+  --color-gold-600: #cc9615;
+  --color-gold-700: #a6790f;
+  --color-gold-800: #7a5a0e;
+  --color-gold-900: #5c440f;
+
+  /* Coral — danger / critical only */
+  --color-coral-50: #fef2f0;
+  --color-coral-100: #fde1dd;
+  --color-coral-200: #fbc3ba;
+  --color-coral-300: #f79a8b;
+  --color-coral-400: #f55142;
+  --color-coral-500: #e63a2b;
+  --color-coral-600: #c22e21;
+  --color-coral-700: #97251b;
+  --color-coral-800: #7a231a;
+  --color-coral-900: #601c15;
+
+  /* Cyan — secondary / staff / info */
+  --color-cyan-50: #eefdfe;
+  --color-cyan-100: #d9f9fc;
+  --color-cyan-200: #aef1f7;
+  --color-cyan-300: #6fe4ee;
+  --color-cyan-400: #42e6f5;
+  --color-cyan-500: #1fb9c9;
+  --color-cyan-600: #1697a5;
+  --color-cyan-700: #147886;
+  --color-cyan-800: #135f6a;
+  --color-cyan-900: #0c5b63;
+
+}
+
+/* Theme-able surface/ink roles, remapped from the plain CSS vars below so the
+   .dark toggle can swap them without touching component classes. Uses
+   `@theme inline` (not `@theme`) because these values are var() indirections
+   rather than literals — Tailwind v4 requires `inline` for that to resolve
+   correctly in generated utilities. */
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-ink: var(--sidebar-ink);
+  --color-sidebar-ink-muted: var(--sidebar-ink-muted);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-ink: var(--sidebar-active-ink);
+}
+
+:root {
+  --page: #faf9f5;
+  --surface: #ffffff;
+  --surface-alt: #f3f1ea;
+  --border: #e8e4d9;
+  --ink: #16171c;
+  --ink-secondary: #5b5d6b;
+  --ink-muted: #96979f;
+  --sidebar: #15171f;
+  --sidebar-ink: #c9cad3;
+  --sidebar-ink-muted: #6f7180;
+  --sidebar-active: #f5c542;
+  --sidebar-active-ink: #1c1607;
+}
+
+.dark {
+  --page: #0e0f14;
+  --surface: #1a1c24;
+  --surface-alt: #23252f;
+  --border: #2d2f3a;
+  --ink: #f5f5f7;
+  --ink-secondary: #b7b8c2;
+  --ink-muted: #797a86;
+  --sidebar: #0a0b10;
+  --sidebar-ink: #c9cad3;
+  --sidebar-ink-muted: #62636f;
+  --sidebar-active: #f5c542;
+  --sidebar-active-ink: #1c1607;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background-color: var(--page);
+    color: var(--ink);
+  }
+  body, .theme-transition {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-receipt, #print-receipt * {
+    visibility: visible;
+  }
+  #print-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 80mm;
+  }
+}
