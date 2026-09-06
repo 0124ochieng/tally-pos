@@ -81,7 +81,7 @@ export function ExpensesPage() {
             </div>
             <div>
               <Label>Amount (KES)</Label>
-              <Input type="number" value={amount} onChange={(e) => setAmount(Number(e.target.value))} />
+              <Input type="number" value={amount || ''} placeholder="0" onChange={(e) => setAmount(Number(e.target.value))} />
             </div>
             <div>
               <Label>Description</Label>

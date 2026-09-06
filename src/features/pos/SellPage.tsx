@@ -11,6 +11,7 @@ import { getCategoryIcon } from '../../lib/iconMap'
 import type { CartLine } from '../../lib/salesService'
 import { loadCart, saveCart, clearCart } from '../../lib/cartPersistence'
 import { playSound } from '../../lib/soundService'
+import { fuzzyIncludes } from '../../lib/fuzzyMatch'
 import { PaymentModal } from './PaymentModal'
 import { ImeiPickerModal } from './ImeiPickerModal'
 
@@ -62,8 +63,13 @@ export function SellPage() {
 
   const visibleProducts = useMemo(() => {
     if (searching) {
-      const q = search.toLowerCase()
-      return activeProducts.filter((p) => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q))
+      // SKU stays an exact substring match (it's a code, not a word — a
+      // "close typo" of a SKU isn't a meaningful concept). Name/brand get
+      // typo-tolerant matching so a small slip like "oroimo" still finds
+      // "Oraimo" without pulling in unrelated products.
+      return activeProducts.filter(
+        (p) => fuzzyIncludes(p.name, search) || fuzzyIncludes(p.brand, search) || p.sku.toLowerCase().includes(search.toLowerCase()),
+      )
     }
     if (categoryId) return activeProducts.filter((p) => p.categoryId === categoryId)
     return []
@@ -138,6 +144,7 @@ export function SellPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => {
+                if (e.key === 'Escape') { setSearch(''); return }
                 if (e.key !== 'Enter') return
                 // Barcode scanners type the SKU then send Enter — add the
                 // single matching product straight to the cart, no click needed.
@@ -146,9 +153,18 @@ export function SellPage() {
                   setSearch('')
                 }
               }}
-              className="pl-9"
+              className="pl-9 pr-9"
               autoFocus
             />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                aria-label="Clear search"
+                className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt hover:text-ink"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
           {selectedCategory && !searching && (
             <p className="text-sm font-medium text-ink-secondary">{selectedCategory.name}</p>

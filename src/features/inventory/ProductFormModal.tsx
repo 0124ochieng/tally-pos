@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { Modal } from '../../components/ui/Modal'
 import { Button } from '../../components/ui/Button'
-import { Input, Label, Select } from '../../components/ui/Input'
+import { Input, Label, Select, FieldError } from '../../components/ui/Input'
 import { db, newId, type Product } from '../../lib/db'
 import { enqueueSync } from '../../lib/sync/outbox'
 import { logAudit } from '../../lib/auditLog'
@@ -57,23 +57,41 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
     stock: product?.stock ?? 0,
   })
   const [saving, setSaving] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  async function handleSave() {
-    if (!form.name.trim() || form.sellingPrice <= 0 || !form.categoryId) {
-      show('Fill in a name, category, and a selling price above 0', 'error')
-      return
-    }
-    if (form.costPrice < 0 || form.lowStockThreshold < 0) {
-      show("Cost price and low stock warning level can't be less than 0", 'error')
-      return
-    }
+  function clearFieldError(key: string) {
+    setFieldErrors((prev) => {
+      if (!(key in prev)) return prev
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
+
+  function validate(): Record<string, string> {
+    const errors: Record<string, string> = {}
+    if (!form.name.trim()) errors.name = 'Give the product a name'
+    if (!form.categoryId) errors.categoryId = 'Pick a category'
+    if (form.sellingPrice <= 0) errors.sellingPrice = 'Enter a selling price above 0'
+    if (form.costPrice < 0) errors.costPrice = "Cost price can't be less than 0"
+    if (form.lowStockThreshold < 0) errors.lowStockThreshold = "This can't be less than 0"
     if (!isEdit) {
       const trimmedSku = form.sku.trim().toLowerCase()
       if (trimmedSku && products.some((p) => p.sku.toLowerCase() === trimmedSku)) {
-        show('Another product already uses that SKU', 'error')
-        return
+        errors.sku = 'Another product already uses that SKU'
       }
     }
+    return errors
+  }
+
+  async function handleSave() {
+    const errors = validate()
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors)
+      show('Check the highlighted fields below', 'error')
+      return
+    }
+    setFieldErrors({})
     setSaving(true)
     const now = Date.now()
 
@@ -134,7 +152,12 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
       <div className="grid grid-cols-2 gap-4">
         <div className="col-span-2">
           <Label>Product Name</Label>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input
+            value={form.name}
+            invalid={!!fieldErrors.name}
+            onChange={(e) => { setForm({ ...form, name: e.target.value }); clearFieldError('name') }}
+          />
+          <FieldError>{fieldErrors.name}</FieldError>
         </div>
         <div>
           <Label>Brand</Label>
@@ -142,7 +165,13 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         </div>
         <div>
           <Label>SKU {isEdit ? '' : '(auto if left blank)'}</Label>
-          <Input value={form.sku} disabled={isEdit} onChange={(e) => setForm({ ...form, sku: e.target.value })} />
+          <Input
+            value={form.sku}
+            disabled={isEdit}
+            invalid={!!fieldErrors.sku}
+            onChange={(e) => { setForm({ ...form, sku: e.target.value }); clearFieldError('sku') }}
+          />
+          <FieldError>{fieldErrors.sku}</FieldError>
         </div>
         <div className="col-span-2">
           <Label>Description</Label>
@@ -150,12 +179,17 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         </div>
         <div>
           <Label>Category</Label>
-          <Select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })}>
+          <Select
+            value={form.categoryId}
+            invalid={!!fieldErrors.categoryId}
+            onChange={(e) => { setForm({ ...form, categoryId: e.target.value }); clearFieldError('categoryId') }}
+          >
             <option value="">Select category…</option>
             {[...categories].sort((a, b) => a.name.localeCompare(b.name)).map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
+          <FieldError>{fieldErrors.categoryId}</FieldError>
         </div>
         <div>
           <Label>Unit</Label>
@@ -163,11 +197,26 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         </div>
         <div>
           <Label>Selling Price (KES)</Label>
-          <Input type="number" value={form.sellingPrice} onChange={(e) => setForm({ ...form, sellingPrice: Number(e.target.value) })} />
+          <Input
+            type="number"
+            value={form.sellingPrice || ''}
+            placeholder="0"
+            invalid={!!fieldErrors.sellingPrice}
+            onChange={(e) => { setForm({ ...form, sellingPrice: Number(e.target.value) }); clearFieldError('sellingPrice') }}
+          />
+          <FieldError>{fieldErrors.sellingPrice}</FieldError>
         </div>
         <div>
           <Label>Cost Price (KES)</Label>
-          <Input type="number" min={0} value={form.costPrice} onChange={(e) => setForm({ ...form, costPrice: Number(e.target.value) })} />
+          <Input
+            type="number"
+            min={0}
+            value={form.costPrice || ''}
+            placeholder="0"
+            invalid={!!fieldErrors.costPrice}
+            onChange={(e) => { setForm({ ...form, costPrice: Number(e.target.value) }); clearFieldError('costPrice') }}
+          />
+          <FieldError>{fieldErrors.costPrice}</FieldError>
         </div>
         <div>
           <Label>Stock Quantity</Label>
@@ -180,7 +229,14 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         </div>
         <div>
           <Label>Low Stock Warning Level</Label>
-          <Input type="number" min={0} value={form.lowStockThreshold} onChange={(e) => setForm({ ...form, lowStockThreshold: Number(e.target.value) })} />
+          <Input
+            type="number"
+            min={0}
+            value={form.lowStockThreshold}
+            invalid={!!fieldErrors.lowStockThreshold}
+            onChange={(e) => { setForm({ ...form, lowStockThreshold: Number(e.target.value) }); clearFieldError('lowStockThreshold') }}
+          />
+          <FieldError>{fieldErrors.lowStockThreshold}</FieldError>
         </div>
         <div className="col-span-2 flex items-center gap-2">
           <input

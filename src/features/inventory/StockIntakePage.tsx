@@ -140,11 +140,11 @@ export function StockIntakePage() {
           </div>
           <div>
             <Label>Quantity</Label>
-            <Input type="number" min={1} value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} />
+            <Input type="number" min={1} value={quantity || ''} placeholder="1" onChange={(e) => setQuantity(Number(e.target.value))} />
           </div>
           <div>
             <Label>Cost Price (KES, per unit)</Label>
-            <Input type="number" value={costPrice} onChange={(e) => setCostPrice(Number(e.target.value))} />
+            <Input type="number" value={costPrice || ''} placeholder="0" onChange={(e) => setCostPrice(Number(e.target.value))} />
           </div>
           <div>
             <Label>How Was It Paid?</Label>

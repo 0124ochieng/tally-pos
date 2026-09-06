@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { X } from 'lucide-react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Product } from '../../lib/db'
+import { fuzzyIncludes } from '../../lib/fuzzyMatch'
 import { enqueueSync } from '../../lib/sync/outbox'
 import { logAudit, discardAudit } from '../../lib/auditLog'
 import { useAuth } from '../../app/AuthContext'
@@ -33,7 +35,7 @@ export function InventoryPage() {
       .filter((p) => {
         if (!p.active) return false
         if (categoryId !== 'All' && p.categoryId !== categoryId) return false
-        if (search && !p.name.toLowerCase().includes(search.toLowerCase()) && !p.sku.toLowerCase().includes(search.toLowerCase())) return false
+        if (search && !fuzzyIncludes(p.name, search) && !fuzzyIncludes(p.brand, search) && !p.sku.toLowerCase().includes(search.toLowerCase())) return false
         return true
       })
       .sort((a, b) => {
@@ -69,7 +71,24 @@ export function InventoryPage() {
       </div>
 
       <div className="flex gap-3">
-        <Input placeholder="Search by name or SKU…" value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-sm" />
+        <div className="relative max-w-sm flex-1">
+          <Input
+            placeholder="Search by name or SKU…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setSearch('')}
+            className={search ? 'pr-9' : ''}
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+              className="absolute right-2.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-ink-muted hover:bg-surface-alt hover:text-ink"
+            >
+              <X size={14} />
+            </button>
+          )}
+        </div>
         <Select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className="max-w-xs">
           <option value="All">All categories</option>
           {[...categories].sort((a, b) => a.name.localeCompare(b.name)).map((c) => (

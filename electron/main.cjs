@@ -15,9 +15,16 @@ const { autoUpdater } = require('electron-updater')
 // different folder and find no data at all. Pinning this to a fixed name
 // keeps every install's data path stable across every future update,
 // forever, independent of branding. Must be set before app is ready.
-app.setPath('userData', path.join(app.getPath('appData'), 'ReachPOSData'))
-
+//
+// Dev mode gets its own separate folder on purpose: on a machine that
+// also has a real packaged build installed (e.g. testing `electron .`
+// against the same computer a customer build was installed on), the two
+// would otherwise fight over the same IndexedDB lock file — the packaged
+// app being open at all makes every dev-mode launch fail with a
+// "database closed" error, and worse, a dev session could corrupt or
+// overwrite real business data. Never point these at the same folder.
 const isDev = !app.isPackaged
+app.setPath('userData', path.join(app.getPath('appData'), isDev ? 'ReachPOSData-Dev' : 'ReachPOSData'))
 // Escape hatch for diagnosing a customer's already-installed build (e.g. a
 // blank-screen bug that produces no visible error): launch the installed
 // .exe with REACH_POS_DEBUG=1 set to get DevTools back. Customers won't
