@@ -5,4 +5,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getActivation: () => ipcRenderer.invoke('get-activation'),
   setActivation: (data) => ipcRenderer.invoke('set-activation', data),
   clearActivation: () => ipcRenderer.invoke('clear-activation'),
+  appendDeletionLog: (line) => ipcRenderer.invoke('append-deletion-log', line),
 })

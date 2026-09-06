@@ -15,6 +15,7 @@ declare global {
       getActivation: () => Promise<StoredActivation | null>
       setActivation: (data: StoredActivation) => Promise<boolean>
       clearActivation: () => Promise<boolean>
+      appendDeletionLog: (line: string) => Promise<boolean>
     }
   }
 }

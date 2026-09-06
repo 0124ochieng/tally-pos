@@ -13,6 +13,7 @@ const isDev = !app.isPackaged
 // you can reproduce whatever they're seeing without needing a dev rebuild.
 const debugEnabled = isDev || process.env.REACH_POS_DEBUG === '1'
 const ACTIVATION_FILE = () => path.join(app.getPath('userData'), 'activation.json')
+const DELETION_LOG_FILE = () => path.join(app.getPath('userData'), 'deletion-log.txt')
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -88,6 +89,18 @@ ipcMain.handle('clear-activation', () => {
     // already absent
   }
   return true
+})
+
+// Written outside the app's own database on purpose: this is the one
+// record of a data wipe that has to survive the wipe itself, so whoever
+// looks at this PC later can see who deleted what, and when.
+ipcMain.handle('append-deletion-log', (_event, line) => {
+  try {
+    fs.appendFileSync(DELETION_LOG_FILE(), `${line}\n`)
+    return true
+  } catch {
+    return false
+  }
 })
 
 app.whenReady().then(() => {

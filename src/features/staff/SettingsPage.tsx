@@ -10,6 +10,7 @@ import { Input, Label } from '../../components/ui/Input'
 import { getIsCloudConfigured } from '../../lib/supabase'
 import { checkLicense, type ActivationCert } from '../../lib/license'
 import { Badge } from '../../components/ui/Badge'
+import { DataDangerZone } from './DataDangerZone'
 
 export function SettingsPage() {
   const { show } = useToast()
@@ -101,9 +102,10 @@ export function SettingsPage() {
         <CardHeader><CardTitle>Auto Sign-Out</CardTitle></CardHeader>
         <CardBody className="space-y-4">
           <p className="text-xs text-ink-muted">
-            Signs a user out automatically after this many seconds of no activity — a screen left
-            unattended at the till won't stay logged in. An interrupted sale is resumed automatically
-            on the next login. Minimum {MIN_INACTIVITY_TIMEOUT_SECONDS} seconds.
+            Signs a user out automatically after this many seconds of no activity, so a screen left
+            unattended at the till doesn't stay logged in. If there's a sale waiting to be paid for
+            when this happens, the cart is cleared along with the sign-out. Minimum{' '}
+            {MIN_INACTIVITY_TIMEOUT_SECONDS} seconds.
           </p>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -118,6 +120,8 @@ export function SettingsPage() {
           <Button onClick={saveTimeouts}>Save Timeout Settings</Button>
         </CardBody>
       </Card>
+
+      <DataDangerZone />
 
       <p className="pt-2 text-center text-xs text-ink-muted">
         POS by <span className="font-medium">REACH Digital Experts</span>
