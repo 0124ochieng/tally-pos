@@ -163,6 +163,11 @@ function startRealtimePull() {
 
 export function startSyncService() {
   if (intervalHandle) return
+  // Most installs are local-only and never have a cloud project configured
+  // (see docs/DISTRIBUTION.md) — nothing here would ever do anything for
+  // them, so skip setting up listeners/intervals that would just wake up
+  // every 15s forever to no-op.
+  if (!getIsCloudConfigured()) return
 
   window.addEventListener('online', drainOutbox)
   window.addEventListener('offline', () => notify('offline', 0))
