@@ -2,6 +2,8 @@
   "name": "point-of-sale",
   "private": true,
   "version": "0.0.0",
+  "description": "White-label point-of-sale desktop app for retail shops.",
+  "author": "REACH Digital Experts",
   "type": "module",
   "main": "electron/main.cjs",
   "scripts": {
