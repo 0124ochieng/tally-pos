@@ -9,6 +9,8 @@ import { useAuth } from './AuthContext'
 import { SyncStatusBadge } from '../components/SyncStatusBadge'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LiveClock } from '../components/LiveClock'
+import { TourGuide } from '../components/TourGuide'
+import { UpdateBanner } from '../components/UpdateBanner'
 import { SwitchToAdminModal } from './SwitchToAdminModal'
 import { Badge } from '../components/ui/Badge'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
@@ -110,6 +112,7 @@ export function AppLayout() {
                     <NavLink
                       key={item.to}
                       to={item.to}
+                      data-tour={`nav-${item.to.replace('/', '')}`}
                       className={({ isActive }) =>
                         `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                           isActive ? 'bg-sidebar-active text-sidebar-active-ink' : 'text-sidebar-ink hover:bg-white/5'
@@ -195,6 +198,8 @@ export function AppLayout() {
         onCancel={() => setConfirmSignOut(false)}
       />
       <LiveClock />
+      <UpdateBanner />
+      <TourGuide />
     </div>
   )
 }

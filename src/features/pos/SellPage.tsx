@@ -155,7 +155,7 @@ export function SellPage() {
           )}
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto pb-4">
+        <div data-tour="sell-categories" className="min-h-0 flex-1 overflow-y-auto pb-4">
           {!searching && !categoryId && (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
               {categories.map((c, i) => {
@@ -211,7 +211,7 @@ export function SellPage() {
         </div>
       </div>
 
-      <div className="flex h-full w-96 shrink-0 flex-col rounded-2xl border border-border bg-surface transition-colors">
+      <div data-tour="sell-cart" className="flex h-full w-96 shrink-0 flex-col rounded-2xl border border-border bg-surface transition-colors">
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div>
             <h2 className="text-sm font-semibold text-ink">Current Sale</h2>
@@ -256,6 +256,7 @@ export function SellPage() {
             <span className="text-lg font-bold text-ink">KES {subtotal.toLocaleString()}</span>
           </div>
           <button
+            data-tour="sell-charge"
             disabled={cart.length === 0}
             onClick={() => setPayOpen(true)}
             className="flex h-12 w-full items-center justify-center rounded-xl bg-gold-400 text-base font-bold text-neutral-900 shadow-sm shadow-gold-400/30 transition-colors hover:bg-gold-500 disabled:cursor-not-allowed disabled:bg-gold-200"

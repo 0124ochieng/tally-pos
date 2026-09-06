@@ -92,7 +92,7 @@ export function DashboardPage() {
       <h1 className="text-lg font-bold text-ink">Dashboard</h1>
 
       {/* HERO — the one number an owner checks first each day */}
-      <div className="rounded-2xl border-2 border-gold-300 bg-surface p-6 transition-colors dark:border-gold-500/40">
+      <div data-tour="dashboard-hero" className="rounded-2xl border-2 border-gold-300 bg-surface p-6 transition-colors dark:border-gold-500/40">
         <p className="text-sm font-medium text-ink-secondary">Today's Sales</p>
         <p className="mt-1 text-4xl font-extrabold tracking-tight text-ink">KES {todayTotal.toLocaleString()}</p>
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-sm text-ink-secondary">
@@ -102,7 +102,7 @@ export function DashboardPage() {
       </div>
 
       {/* Money + Attention — grouped by "what does the owner act on right now" */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div data-tour="dashboard-money" className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader><CardTitle>Money Right Now</CardTitle></CardHeader>
           <CardBody className="grid grid-cols-2 gap-4">

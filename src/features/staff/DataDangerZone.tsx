@@ -20,7 +20,7 @@ export function DataDangerZone() {
   const [openInventory, setOpenInventory] = useState(false)
 
   return (
-    <Card className="border-coral-200 dark:border-coral-900/40">
+    <Card data-tour="settings-danger" className="border-coral-200 dark:border-coral-900/40">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-coral-600 dark:text-coral-400">
           <AlertOctagon size={16} /> Danger Zone

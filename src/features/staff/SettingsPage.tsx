@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import {
   getSetting, setSetting, getBusinessName,
   getInactivityTimeoutSeconds, setInactivityTimeoutSeconds, MIN_INACTIVITY_TIMEOUT_SECONDS,
+  getSoundEnabled, setSoundEnabled,
 } from '../../lib/settings'
 import { useToast } from '../../components/ui/Toast'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/ui/Card'
@@ -11,7 +12,6 @@ import { getIsCloudConfigured } from '../../lib/supabase'
 import { checkLicense, type ActivationCert } from '../../lib/license'
 import { Badge } from '../../components/ui/Badge'
 import { DataDangerZone } from './DataDangerZone'
-import { getSoundEnabled, setSoundEnabled } from '../../lib/settings'
 import { playSound } from '../../lib/soundService'
 import { Volume2, VolumeX } from 'lucide-react'
 
@@ -84,7 +84,7 @@ export function SettingsPage() {
         </CardBody>
       </Card>
 
-      <Card>
+      <Card data-tour="settings-shop">
         <CardHeader><CardTitle>Shop Details</CardTitle></CardHeader>
         <CardBody className="space-y-4">
           <div>

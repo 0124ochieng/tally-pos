@@ -65,7 +65,7 @@ export function InventoryPage() {
 
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-ink">Products</h1>
-        <Button onClick={() => setEditing('new')}>Add Product</Button>
+        <Button data-tour="inventory-add" onClick={() => setEditing('new')}>Add Product</Button>
       </div>
 
       <div className="flex gap-3">
