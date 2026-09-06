@@ -34,7 +34,13 @@ interface NavGroup {
 // list of nine equally-weighted links.
 const adminNavGroups: NavGroup[] = [
   { label: 'Overview', items: [{ to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard }] },
-  { label: 'Sell', items: [{ to: '/sell', label: 'Sell', icon: ShoppingCart }] },
+  {
+    label: 'Sell',
+    items: [
+      { to: '/sell', label: 'Sell', icon: ShoppingCart },
+      { to: '/sales', label: 'Sales', icon: Receipt },
+    ],
+  },
   {
     label: 'Inventory',
     items: [

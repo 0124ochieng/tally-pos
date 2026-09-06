@@ -45,8 +45,10 @@ export function HistoryPage() {
   const sales = useLiveQuery(() => db.sales.toArray(), []) ?? []
   const products = useLiveQuery(() => db.products.toArray(), []) ?? []
   const expenseCategories = useLiveQuery(() => db.expenseCategories.toArray(), []) ?? []
+  const staffUsers = useLiveQuery(() => db.users.toArray(), []) ?? []
   const productsById = useMemo(() => new Map(products.map((p) => [p.id, p])), [products])
   const expenseCategoryById = useMemo(() => new Map(expenseCategories.map((c) => [c.id, c.name])), [expenseCategories])
+  const nameByCashierId = useMemo(() => new Map(staffUsers.map((u) => [u.id, u.name])), [staffUsers])
 
   const feed = useMemo<FeedItem[]>(() => {
     const auditItems: FeedItem[] = auditLog.map((a) => ({
@@ -85,7 +87,7 @@ export function HistoryPage() {
       type: 'sale',
       icon: s.status === 'voided' ? Ban : ReceiptIcon,
       tone: s.status === 'voided' ? 'coral' : 'gold',
-      actorName: s.status === 'voided' ? (s.voidedBy ?? 'Admin') : 'Cashier',
+      actorName: s.status === 'voided' ? (s.voidedBy ?? 'Admin') : (nameByCashierId.get(s.cashierId) ?? 'Removed staff'),
       summary:
         s.status === 'voided'
           ? `Voided sale — KES ${s.total.toLocaleString()}${s.voidReason ? ` (${s.voidReason})` : ''}`
@@ -94,7 +96,7 @@ export function HistoryPage() {
       createdAt: s.status === 'voided' ? (s.voidedAt ?? s.createdAt) : s.createdAt,
     }))
     return [...auditItems, ...stockItems, ...expenseItems, ...saleItems].sort((a, b) => b.createdAt - a.createdAt)
-  }, [auditLog, stockIntakes, expenses, sales, productsById, expenseCategoryById])
+  }, [auditLog, stockIntakes, expenses, sales, productsById, expenseCategoryById, nameByCashierId])
 
   const filtered = filter === 'all' ? feed : feed.filter((f) => f.type === filter)
 

@@ -5,6 +5,7 @@ import { AppLayout } from './app/AppLayout'
 import { Login } from './app/Login'
 import { SellPage } from './features/pos/SellPage'
 import { MySalesPage } from './features/pos/MySalesPage'
+import { AllSalesPage } from './features/pos/AllSalesPage'
 import { DrawerPage } from './features/drawer/DrawerPage'
 import { InventoryPage } from './features/inventory/InventoryPage'
 import { StockIntakePage } from './features/inventory/StockIntakePage'
@@ -48,6 +49,7 @@ function App() {
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/sell" element={<SellPage />} />
         <Route path="/my-sales" element={<MySalesPage />} />
+        <Route path="/sales" element={<RequireAdmin><AllSalesPage /></RequireAdmin>} />
         <Route path="/drawer" element={<DrawerPage />} />
         <Route path="/dashboard" element={<RequireAdmin><DashboardPage /></RequireAdmin>} />
         <Route path="/inventory" element={<RequireAdmin><InventoryPage /></RequireAdmin>} />
