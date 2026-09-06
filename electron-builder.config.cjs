@@ -34,10 +34,7 @@ module.exports = {
   files: ['dist/**/*', 'electron/**/*', 'package.json'],
   win: {
     target: 'nsis',
-    // No .ico shipped yet — electron-builder falls back to its own default
-    // icon. Add build/icon.ico (256x256) and uncomment the line below
-    // before shipping a real customer build.
-    // icon: 'build/icon.ico',
+    icon: 'build/icon.ico',
   },
   nsis: {
     oneClick: false,

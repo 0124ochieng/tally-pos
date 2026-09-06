@@ -48,6 +48,10 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 700,
     autoHideMenuBar: true,
+    // The packaged .exe already carries this icon (see electron-builder.config.cjs),
+    // but Windows shows the exe's own default icon for the window/taskbar in dev
+    // mode unless one is set here explicitly.
+    icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
