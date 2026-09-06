@@ -42,6 +42,20 @@
   --color-cyan-800: #135f6a;
   --color-cyan-900: #0c5b63;
 
+  /* Neutral — a real gray ramp, same warm undertone as the page/surface
+     tokens below, so components stop falling back to Tailwind's default
+     (cooler, mismatched) gray whenever they need a neutral. */
+  --color-neutral-50: #f8f7f4;
+  --color-neutral-100: #f0eee7;
+  --color-neutral-200: #e2dfd4;
+  --color-neutral-300: #cac5b5;
+  --color-neutral-400: #a8a293;
+  --color-neutral-500: #87816f;
+  --color-neutral-600: #6b6558;
+  --color-neutral-700: #524d43;
+  --color-neutral-800: #3a3730;
+  --color-neutral-900: #24221d;
+  --color-neutral-950: #16150f;
 }
 
 /* Theme-able surface/ink roles, remapped from the plain CSS vars below so the
@@ -54,6 +68,7 @@
   --color-surface: var(--surface);
   --color-surface-alt: var(--surface-alt);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-muted: var(--ink-muted);
@@ -68,10 +83,19 @@
   --page: #faf9f5;
   --surface: #ffffff;
   --surface-alt: #f3f1ea;
-  --border: #e8e4d9;
+  /* Two border strengths: `border` for quiet dividers between things that
+     are already visually separated by spacing (card edges, table rows);
+     `border-strong` for anything a person actually interacts with
+     (inputs, selects, buttons) — those need to read clearly as a shape to
+     click into, not just a decorative line. */
+  --border: #ddd6c4;
+  --border-strong: #b7ae97;
   --ink: #16171c;
   --ink-secondary: #5b5d6b;
-  --ink-muted: #96979f;
+  /* Raised from the original #96979f (~2.9:1 on white, below WCAG AA) to
+     comfortably clear 4.5:1 for the labels/timestamps/hints this token is
+     used for everywhere. */
+  --ink-muted: #6b6c76;
   --sidebar: #15171f;
   --sidebar-ink: #c9cad3;
   --sidebar-ink-muted: #6f7180;
@@ -84,9 +108,10 @@
   --surface: #1a1c24;
   --surface-alt: #23252f;
   --border: #2d2f3a;
+  --border-strong: #454858;
   --ink: #f5f5f7;
   --ink-secondary: #b7b8c2;
-  --ink-muted: #797a86;
+  --ink-muted: #8b8c98;
   --sidebar: #0a0b10;
   --sidebar-ink: #c9cad3;
   --sidebar-ink-muted: #62636f;
@@ -108,6 +133,41 @@
   }
   body, .theme-transition {
     transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  }
+}
+
+@layer utilities {
+  /* Frosted-glass surface — used sparingly (header bar, floating help
+     button, modal chrome), never as a full-page effect. backdrop-filter is
+     genuinely expensive on integrated GPUs, so keep this on small,
+     stationary elements only, never anything that scrolls or animates. */
+  .surface-glass {
+    background-color: color-mix(in srgb, var(--surface) 72%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  /* A small, consistent elevation scale so "how far off the page does
+     this feel" is a deliberate choice, not whatever shadow-sm/lg/xl a
+     component happened to reach for. Higher elevation = more important /
+     more temporary (tiles sit low; modals and floating controls sit high). */
+  .elevation-1 {
+    box-shadow: 0 1px 2px rgba(16, 15, 10, 0.04), 0 1px 1px rgba(16, 15, 10, 0.03);
+  }
+  .elevation-2 {
+    box-shadow: 0 4px 10px rgba(16, 15, 10, 0.06), 0 2px 4px rgba(16, 15, 10, 0.05);
+  }
+  .elevation-3 {
+    box-shadow: 0 12px 28px rgba(16, 15, 10, 0.14), 0 4px 10px rgba(16, 15, 10, 0.08);
+  }
+  .dark .elevation-1 {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 1px rgba(0, 0, 0, 0.2);
+  }
+  .dark .elevation-2 {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.25);
+  }
+  .dark .elevation-3 {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
   }
 }
 

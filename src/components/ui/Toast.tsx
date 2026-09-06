@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
-import { CheckCircle2, AlertTriangle, Info } from 'lucide-react'
+import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
 
 interface ToastMessage {
   id: string
@@ -28,22 +28,38 @@ const icons: Record<ToastMessage['tone'], typeof CheckCircle2> = {
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastMessage[]>([])
 
+  const dismiss = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id))
+  }, [])
+
   const show = useCallback((text: string, tone: ToastMessage['tone'] = 'success') => {
     const id = crypto.randomUUID()
     setToasts((prev) => [...prev, { id, text, tone }])
-    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3000)
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000)
   }, [])
 
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2">
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="false"
+        className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2"
+      >
         {toasts.map((t) => {
           const Icon = icons[t.tone]
           return (
-            <div key={t.id} className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium shadow-lg ${toneClasses[t.tone]}`}>
-              <Icon size={16} />
-              {t.text}
+            <div key={t.id} className={`elevation-2 flex items-center gap-2 rounded-xl py-2.5 pl-4 pr-2 text-sm font-medium ${toneClasses[t.tone]}`}>
+              <Icon size={16} className="shrink-0" />
+              <span className="flex-1">{t.text}</span>
+              <button
+                onClick={() => dismiss(t.id)}
+                aria-label="Dismiss notification"
+                className="rounded-lg p-1 opacity-70 hover:opacity-100"
+              >
+                <X size={14} />
+              </button>
             </div>
           )
         })}

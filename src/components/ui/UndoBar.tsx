@@ -59,7 +59,11 @@ export function UndoProvider({ children }: { children: ReactNode }) {
     <UndoContext.Provider value={{ triggerUndo }}>
       {children}
       {active && (
-        <div className="fixed bottom-16 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 items-center gap-3 overflow-hidden rounded-2xl border border-border bg-surface px-4 py-3 shadow-lg">
+        <div
+          role="status"
+          aria-live="assertive"
+          className="elevation-2 fixed bottom-16 left-1/2 z-40 flex w-full max-w-md -translate-x-1/2 items-center gap-3 overflow-hidden rounded-2xl border border-border bg-surface px-4 py-3"
+        >
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm text-ink">{active.label}</p>
             <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-surface-alt">
