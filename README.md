@@ -1,32 +1,62 @@
-# React + TypeScript + Vite
+# Hymes Gadgets POS
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A white-label point-of-sale desktop app for retail shops — sell, track inventory,
+manage stock intake, run reports, and handle staff PINs and cash/M-Pesa drawers.
+Built with Electron, React 19, Vite, Tailwind CSS v4, and Dexie (IndexedDB).
 
-Currently, two official plugins are available:
+**Local-first by design:** all shop data (sales, inventory, staff, reports) lives
+only on the till's own computer — there's no cloud dependency for day-to-day use.
+Supabase is used only for one-time license activation. See
+[`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) for how a build gets sold and set
+up for a new business, and [`docs/EULA-template.md`](docs/EULA-template.md) for
+the license agreement template.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## System requirements
 
-## React Compiler
+- Windows 10 or later (64-bit). Electron's underlying Chromium engine no longer
+  supports older versions of Windows.
+- No internet connection needed for normal use — only the one-time activation
+  step and (if configured) checking for app updates need it.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev            # Vite dev server (browser, for UI work)
+npm run electron:dev   # Electron shell pointed at the dev server
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Local dev skips license activation via `VITE_SKIP_ACTIVATION=true` in `.env`
+(see `.env.example`) — never set that in a real customer build.
+
+```bash
+npm run build   # tsc + vite build
+npm run lint    # oxlint
+```
+
+## Producing a customer installer
+
+```bash
+npm run electron:build
+```
+
+Runs a release-config sanity check, builds, obfuscates the app's own bundled
+code, and packages a Windows NSIS installer into `release/`. See
+[`docs/DISTRIBUTION.md`](docs/DISTRIBUTION.md) for the full per-customer
+workflow (restructuring `.env`, issuing a license key, and what to hand the
+customer).
+
+## Project layout
+
+- `src/app/` — auth/session, license/activation gating, theming, top-level layout
+- `src/features/` — one folder per screen (POS, inventory, stock intake,
+  reports, expenses, drawer, staff, settings)
+- `src/lib/` — the local database (Dexie), business logic, sync/backup
+  infrastructure, and shared services
+- `src/components/` — shared UI primitives and cross-cutting widgets (toasts,
+  the onboarding tour, the update banner)
+- `electron/` — the Electron main process and preload bridge
+- `supabase/` — schema for the *optional* per-customer cloud-sync add-on
+  (off by default — see `docs/DISTRIBUTION.md`)
+- `vendor-supabase/` + `vendor-tools/` — the vendor's own license-activation
+  service and key-generation script (not shipped to customers)
