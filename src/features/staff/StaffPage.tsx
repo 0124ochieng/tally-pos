@@ -3,17 +3,22 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { db, newId, type Role, type User } from '../../lib/db'
 import { hashPin, generateSalt } from '../../lib/pin'
 import { enqueueSync } from '../../lib/sync/outbox'
+import { logDeletion } from '../../lib/dataLifecycle'
+import { useAuth } from '../../app/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Modal } from '../../components/ui/Modal'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { Input, Label, Select } from '../../components/ui/Input'
 import { Badge } from '../../components/ui/Badge'
 
 export function StaffPage() {
+  const { user: currentUser } = useAuth()
   const { show } = useToast()
   const usersRaw = useLiveQuery(() => db.users.toArray(), []) ?? []
   const users = [...usersRaw].sort((a, b) => (a.role === b.role ? a.name.localeCompare(b.name) : a.role === 'admin' ? -1 : 1))
+  const activeAdminCount = users.filter((u) => u.role === 'admin' && u.active).length
 
   const [name, setName] = useState('')
   const [pin, setPin] = useState('')
@@ -21,6 +26,7 @@ export function StaffPage() {
 
   const [resetting, setResetting] = useState<User | null>(null)
   const [resetPin, setResetPin] = useState('')
+  const [deleting, setDeleting] = useState<User | null>(null)
 
   async function pinInUse(candidatePin: string, excludeUserId?: string) {
     const matches = await Promise.all(
@@ -48,10 +54,45 @@ export function StaffPage() {
     setPin('')
   }
 
-  async function toggleActive(id: string, active: boolean) {
-    await db.users.update(id, { active: !active })
-    const updated = await db.users.get(id)
+  // The shop can never be left with zero admins able to sign in — that
+  // would lock everyone out of Settings, Staff, Reports, everything
+  // admin-only, with no way back in short of reinstalling. Both disabling
+  // and deleting the last active admin are blocked for this reason.
+  function isLastActiveAdmin(u: User) {
+    return u.role === 'admin' && u.active && activeAdminCount <= 1
+  }
+
+  async function toggleActive(u: User) {
+    if (u.active && u.id === currentUser?.id) {
+      show("You can't disable your own account while signed in — ask another admin to do it", 'error')
+      return
+    }
+    if (u.active && isLastActiveAdmin(u)) {
+      show("Can't disable the only admin account — add or enable another admin first", 'error')
+      return
+    }
+    await db.users.update(u.id, { active: !u.active })
+    const updated = await db.users.get(u.id)
     if (updated) await enqueueSync('users', 'upsert', updated)
+  }
+
+  async function handleDelete() {
+    if (!deleting) return
+    if (deleting.id === currentUser?.id) {
+      show("You can't delete your own account while signed in — ask another admin to do it", 'error')
+      setDeleting(null)
+      return
+    }
+    if (isLastActiveAdmin(deleting)) {
+      show("Can't delete the only admin account — add or enable another admin first", 'error')
+      setDeleting(null)
+      return
+    }
+    await db.users.delete(deleting.id)
+    await enqueueSync('users', 'delete', { id: deleting.id })
+    await logDeletion(`DELETED STAFF ACCOUNT "${deleting.name}" (${deleting.role}) by "${currentUser!.name}"`)
+    show(`"${deleting.name}" was deleted`)
+    setDeleting(null)
   }
 
   async function handleResetPin() {
@@ -116,19 +157,29 @@ export function StaffPage() {
                   <td className="py-2 capitalize text-ink-secondary">{u.role}</td>
                   <td className="py-2"><Badge tone={u.active ? 'gold' : 'coral'}>{u.active ? 'Active' : 'Disabled'}</Badge></td>
                   <td className="py-2 text-right">
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-1">
+                      {u.active && (
+                        <button
+                          onClick={() => { setResetting(u); setResetPin('') }}
+                          className="rounded-md px-2 py-1.5 text-xs font-medium text-cyan-700 hover:underline dark:text-cyan-400"
+                        >
+                          Reset PIN
+                        </button>
+                      )}
                       <button
-                        onClick={() => { setResetting(u); setResetPin('') }}
-                        className="rounded-md px-2 py-1.5 text-xs font-medium text-cyan-700 hover:underline dark:text-cyan-400"
-                      >
-                        Reset PIN
-                      </button>
-                      <button
-                        onClick={() => toggleActive(u.id, u.active)}
+                        onClick={() => toggleActive(u)}
                         className="rounded-md px-2 py-1.5 text-xs font-medium text-gold-700 hover:underline"
                       >
                         {u.active ? 'Disable' : 'Enable'}
                       </button>
+                      {!u.active && (
+                        <button
+                          onClick={() => setDeleting(u)}
+                          className="rounded-md px-2 py-1.5 text-xs font-medium text-coral-500 hover:underline"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -154,6 +205,16 @@ export function StaffPage() {
           />
         </Modal>
       )}
+
+      <ConfirmDialog
+        open={deleting !== null}
+        title="Delete this staff account?"
+        message={`"${deleting?.name}" will be permanently removed and won't be able to sign in again — this can't be undone. Their past sales and activity stay in your records exactly as they are.`}
+        confirmLabel="Delete for good"
+        destructive
+        onConfirm={handleDelete}
+        onCancel={() => setDeleting(null)}
+      />
     </div>
   )
 }

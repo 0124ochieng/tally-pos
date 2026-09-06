@@ -11,7 +11,10 @@ import { db } from './db'
 import { clearCart } from './cartPersistence'
 import { emitDataChanged } from './events'
 
-async function logDeletion(line: string) {
+/** Exported for reuse anywhere else a destructive, hard-to-undo action
+ * (e.g. permanently deleting a staff account) deserves the same
+ * outside-the-database paper trail as a full data wipe. */
+export async function logDeletion(line: string) {
   const stamped = `[${new Date().toISOString()}] ${line}`
   if (typeof window !== 'undefined' && window.electronAPI) {
     await window.electronAPI.appendDeletionLog(stamped)
@@ -29,7 +32,9 @@ export interface DataResetSummary {
   expenseCategories: number
   stockIntakes: number
   auditLog: number
-  soldSerials: number
+  /** Sold-serial records removed (the physical units they represent were
+   * already sold to real customers — see resetSalesAndActivityData). */
+  soldSerialsRemoved: number
 }
 
 /** Wipes sales/money/activity history. Deliberately spares products,
@@ -37,7 +42,7 @@ export interface DataResetSummary {
  * rebuilding a product catalogue from scratch is hours of work an owner
  * shouldn't have to redo just to start a new financial period. */
 export async function resetSalesAndActivityData(actorName: string): Promise<DataResetSummary> {
-  const [sales, cashDrawerEntries, mpesaTillEntries, expenses, stockIntakes, auditLog, expenseCategoriesToDelete, soldSerials] =
+  const [sales, cashDrawerEntries, mpesaTillEntries, expenses, stockIntakes, auditLog, expenseCategoriesToDelete, soldSerialsRemoved] =
     await Promise.all([
       db.sales.count(),
       db.cashDrawerEntries.count(),
@@ -61,10 +66,13 @@ export async function resetSalesAndActivityData(actorName: string): Promise<Data
       await db.stockIntakes.clear()
       await db.auditLog.clear()
       await db.outbox.clear()
-      // A "sold" serial's status only means something in relation to the
-      // sale it was sold in — with that sale gone, reset it back to
-      // available stock instead of leaving it in limbo.
-      await db.serials.where('status').equals('sold').modify({ status: 'in_stock', soldInSaleId: null })
+      // A "sold" serial was physically handed to a real customer — deleting
+      // the sales history doesn't undo that. Resetting it back to
+      // "in_stock" here would let it be sold a second time even though the
+      // shop doesn't have it anymore. Remove the record instead: it keeps
+      // product.stock (untouched by this reset) matching the count of
+      // serials that are *actually* still on the shelf.
+      await db.serials.where('status').equals('sold').delete()
     },
   )
 
@@ -80,7 +88,7 @@ export async function resetSalesAndActivityData(actorName: string): Promise<Data
     expenseCategories: expenseCategoriesToDelete,
     stockIntakes,
     auditLog,
-    soldSerials,
+    soldSerialsRemoved,
   }
 }
 

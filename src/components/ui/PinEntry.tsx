@@ -63,7 +63,7 @@ export function PinEntry({ value, onChange, onComplete, disabled, length = 4 }: 
         ))}
       </div>
 
-      <div className="mt-3 flex justify-end">
+      <div className="mt-3 flex justify-center">
         <button
           type="button"
           onClick={() => setShowKeypad((v) => !v)}

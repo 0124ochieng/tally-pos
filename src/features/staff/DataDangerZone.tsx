@@ -70,6 +70,7 @@ export function DataDangerZone() {
           'Expenses and expense categories you added (built-in ones stay)',
           'Stock-intake history (when stock was received)',
           'The activity/history log',
+          'IMEI/serial records for items already sold (they were sold — clearing sales history can\'t bring them back into stock)',
         ]}
         keeps={['Every product', 'Every category', 'Current stock counts', 'Staff accounts', 'Shop settings']}
         onExecute={async () => {

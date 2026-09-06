@@ -127,13 +127,18 @@ export async function voidSale(sale: Sale, actor: { id: string; name: string }, 
           await db.serials.update(serial.id, { status: 'in_stock', soldInSaleId: null })
           await enqueueSync('serials', 'upsert', { ...serial, status: 'in_stock', soldInSaleId: null })
         }
-      } else {
-        const product = await db.products.get(item.productId)
-        if (product) {
-          const restoredStock = product.stock + item.qty
-          await db.products.update(product.id, { stock: restoredStock })
-          await enqueueSync('products', 'upsert', { ...product, stock: restoredStock })
-        }
+      }
+      // completeSale() decrements product.stock for every line, serialized
+      // or not (see the loop there) — so the reversal has to restore it for
+      // every line too. Only doing this for the non-serialized branch left
+      // a voided serialized sale's stock count permanently short by the
+      // voided quantity, even though the serial itself was already back
+      // in the "in stock" list.
+      const product = await db.products.get(item.productId)
+      if (product) {
+        const restoredStock = product.stock + item.qty
+        await db.products.update(product.id, { stock: restoredStock })
+        await enqueueSync('products', 'upsert', { ...product, stock: restoredStock })
       }
     }
 
