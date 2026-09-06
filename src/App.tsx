@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './app/AuthContext'
 import { AppLayout } from './app/AppLayout'
@@ -10,16 +10,20 @@ import { InventoryPage } from './features/inventory/InventoryPage'
 import { StockIntakePage } from './features/inventory/StockIntakePage'
 import { HistoryPage } from './features/history/HistoryPage'
 import { ExpensesPage } from './features/expenses/ExpensesPage'
+import { DashboardPage } from './features/reports/DashboardPage'
+import { ReportsPage } from './features/reports/ReportsPage'
 import { StaffPage } from './features/staff/StaffPage'
 import { SettingsPage } from './features/staff/SettingsPage'
 
-// Split out of the main bundle: these two pull in the charting library
-// (recharts, a genuinely large dependency), and staff/cashier accounts —
-// the majority of day-to-day sessions on a shared till — never route to
-// either one at all (they're admin-only). No reason to make every launch
-// parse that code just because an owner might check Reports later.
-const DashboardPage = lazy(() => import('./features/reports/DashboardPage').then((m) => ({ default: m.DashboardPage })))
-const ReportsPage = lazy(() => import('./features/reports/ReportsPage').then((m) => ({ default: m.ReportsPage })))
+// NOTE: Dashboard/Reports were previously lazy-loaded (React.lazy) to keep
+// recharts out of the main bundle for staff sessions. Reverted: dynamic
+// import() of a code-split chunk doesn't reliably resolve under Electron's
+// file:// protocol once packaged (confirmed live — admin's default landing
+// page, /dashboard, crashed with "Failed to construct 'URL': Invalid URL"
+// on every launch, while the identical dev-server/http:// build never
+// reproduced it). Correctness beats the bundle-size win here — don't
+// reintroduce lazy() for these without testing an actual packaged
+// (file://) build, not just `npm run dev`.
 
 function RequireAdmin({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -45,12 +49,12 @@ function App() {
         <Route path="/sell" element={<SellPage />} />
         <Route path="/my-sales" element={<MySalesPage />} />
         <Route path="/drawer" element={<DrawerPage />} />
-        <Route path="/dashboard" element={<RequireAdmin><Suspense fallback={null}><DashboardPage /></Suspense></RequireAdmin>} />
+        <Route path="/dashboard" element={<RequireAdmin><DashboardPage /></RequireAdmin>} />
         <Route path="/inventory" element={<RequireAdmin><InventoryPage /></RequireAdmin>} />
         <Route path="/stock-intake" element={<RequireAdmin><StockIntakePage /></RequireAdmin>} />
         <Route path="/expenses" element={<RequireAdmin><ExpensesPage /></RequireAdmin>} />
         <Route path="/history" element={<RequireAdmin><HistoryPage /></RequireAdmin>} />
-        <Route path="/reports" element={<RequireAdmin><Suspense fallback={null}><ReportsPage /></Suspense></RequireAdmin>} />
+        <Route path="/reports" element={<RequireAdmin><ReportsPage /></RequireAdmin>} />
         <Route path="/staff" element={<RequireAdmin><StaffPage /></RequireAdmin>} />
         <Route path="/settings" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
       </Route>
