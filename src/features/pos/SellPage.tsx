@@ -10,6 +10,7 @@ import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { getCategoryIcon } from '../../lib/iconMap'
 import type { CartLine } from '../../lib/salesService'
 import { loadCart, saveCart, clearCart } from '../../lib/cartPersistence'
+import { playSound } from '../../lib/soundService'
 import { PaymentModal } from './PaymentModal'
 import { ImeiPickerModal } from './ImeiPickerModal'
 
@@ -71,6 +72,7 @@ export function SellPage() {
   const selectedCategory = categories.find((c) => c.id === categoryId)
 
   function addToCart(product: Product, imei: string | null = null) {
+    playSound('tick')
     setCart((prev) => {
       const existing = prev.find((l) => l.productId === product.id && l.imei === imei)
       if (existing && !product.isSerialized) {

@@ -4,6 +4,8 @@ const KEYS = {
   shopAddress: 'hymes-pos-shop-address',
   adminTimeoutSeconds: 'hymes-pos-admin-timeout-seconds',
   staffTimeoutSeconds: 'hymes-pos-staff-timeout-seconds',
+  soundEnabled: 'hymes-pos-sound-enabled',
+  onboardingSeen: 'hymes-pos-onboarding-seen',
 } as const
 
 // Per-customer default, set once per build in .env when a new install is
@@ -35,4 +37,21 @@ export function getInactivityTimeoutSeconds(role: 'admin' | 'staff') {
 
 export function setInactivityTimeoutSeconds(role: 'admin' | 'staff', seconds: number) {
   setSetting(role === 'admin' ? 'adminTimeoutSeconds' : 'staffTimeoutSeconds', String(seconds))
+}
+
+export function getSoundEnabled(): boolean {
+  return getSetting('soundEnabled', 'true') !== 'false'
+}
+
+export function setSoundEnabled(enabled: boolean) {
+  setSetting('soundEnabled', enabled ? 'true' : 'false')
+}
+
+export function hasSeenOnboarding(page: string): boolean {
+  return getSetting('onboardingSeen', '').split(',').includes(page)
+}
+
+export function markOnboardingSeen(page: string) {
+  const seen = getSetting('onboardingSeen', '').split(',').filter(Boolean)
+  if (!seen.includes(page)) setSetting('onboardingSeen', [...seen, page].join(','))
 }

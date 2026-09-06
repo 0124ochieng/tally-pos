@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
 import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react'
+import { playSound } from '../../lib/soundService'
 
 interface ToastMessage {
   id: string
@@ -35,6 +36,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((text: string, tone: ToastMessage['tone'] = 'success') => {
     const id = crypto.randomUUID()
     setToasts((prev) => [...prev, { id, text, tone }])
+    playSound(tone)
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 4000)
   }, [])
 

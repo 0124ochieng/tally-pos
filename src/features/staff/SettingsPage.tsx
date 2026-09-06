@@ -11,6 +11,9 @@ import { getIsCloudConfigured } from '../../lib/supabase'
 import { checkLicense, type ActivationCert } from '../../lib/license'
 import { Badge } from '../../components/ui/Badge'
 import { DataDangerZone } from './DataDangerZone'
+import { getSoundEnabled, setSoundEnabled } from '../../lib/settings'
+import { playSound } from '../../lib/soundService'
+import { Volume2, VolumeX } from 'lucide-react'
 
 export function SettingsPage() {
   const { show } = useToast()
@@ -26,6 +29,14 @@ export function SettingsPage() {
   const [footer, setFooter] = useState(() => getSetting('receiptFooter', 'Thank you for shopping with us!'))
   const [adminTimeout, setAdminTimeout] = useState(() => getInactivityTimeoutSeconds('admin'))
   const [staffTimeout, setStaffTimeout] = useState(() => getInactivityTimeoutSeconds('staff'))
+  const [soundOn, setSoundOn] = useState(() => getSoundEnabled())
+
+  function toggleSound() {
+    const next = !soundOn
+    setSoundEnabled(next)
+    setSoundOn(next)
+    if (next) playSound('success')
+  }
 
   function saveGeneral() {
     setSetting('shopName', shopName)
@@ -118,6 +129,19 @@ export function SettingsPage() {
             </div>
           </div>
           <Button onClick={saveTimeouts}>Save Timeout Settings</Button>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Sounds</CardTitle></CardHeader>
+        <CardBody className="flex items-center justify-between">
+          <p className="text-sm text-ink-secondary">
+            A short sound plays when a sale finishes, an item's added to the cart, or something needs
+            your attention. Turn it off if you'd rather the till stayed quiet.
+          </p>
+          <Button variant={soundOn ? 'secondary' : 'primary'} size="sm" onClick={toggleSound}>
+            {soundOn ? <Volume2 size={14} /> : <VolumeX size={14} />} {soundOn ? 'On' : 'Off'}
+          </Button>
         </CardBody>
       </Card>
 
