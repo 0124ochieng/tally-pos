@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, newId, type PaidVia } from '../../lib/db'
 import { enqueueSync } from '../../lib/sync/outbox'
@@ -16,6 +17,8 @@ const NEW_PRODUCT_VALUE = '__new__'
 export function StockIntakePage() {
   const { user } = useAuth()
   const { show } = useToast()
+  const location = useLocation()
+  const preselectProductId = (location.state as { preselectProductId?: string } | null)?.preselectProductId
 
   const products = useLiveQuery(() => db.products.toArray(), []) ?? []
   const categories = useLiveQuery(() => db.categories.toArray(), []) ?? []
@@ -39,6 +42,21 @@ export function StockIntakePage() {
       products: products.filter((p) => p.active && p.categoryId === c.id).sort((a, b) => a.name.localeCompare(b.name)),
     })).filter((g) => g.products.length > 0)
   }, [categories, products])
+
+  // Arriving here right after creating a product in Inventory — jump
+  // straight to recording its first stock instead of making the owner
+  // find it again in the dropdown themselves.
+  const preselectHandled = useRef(false)
+  useEffect(() => {
+    if (!preselectProductId || preselectHandled.current) return
+    const p = productsById.get(preselectProductId)
+    if (!p) return
+    preselectHandled.current = true
+    setProductId(preselectProductId)
+    setCostPrice(p.costPrice)
+    show(`"${p.name}" was added. Now record how much stock came in.`, 'info')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preselectProductId, productsById])
 
   function handleProductSelect(value: string) {
     if (value === NEW_PRODUCT_VALUE) {

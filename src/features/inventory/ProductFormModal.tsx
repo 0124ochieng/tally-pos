@@ -51,6 +51,9 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
     unit: product?.unit ?? 'pc',
     isSerialized: product?.isSerialized ?? false,
     lowStockThreshold: product?.lowStockThreshold ?? 5,
+    // Never directly editable here — see the field below and the create
+    // branch of handleSave(). Stock only ever changes through Stock Intake,
+    // so every unit received has a matching intake record and expense.
     stock: product?.stock ?? 0,
   })
   const [saving, setSaving] = useState(false)
@@ -60,8 +63,8 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
       show('Name, category and a valid selling price are required', 'error')
       return
     }
-    if (form.costPrice < 0 || form.lowStockThreshold < 0 || (!isEdit && form.stock < 0)) {
-      show('Cost price, stock, and low stock threshold cannot be negative', 'error')
+    if (form.costPrice < 0 || form.lowStockThreshold < 0) {
+      show('Cost price and low stock threshold cannot be negative', 'error')
       return
     }
     if (!isEdit) {
@@ -104,7 +107,9 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         unit: form.unit,
         isSerialized: form.isSerialized,
         lowStockThreshold: form.lowStockThreshold,
-        stock: form.stock,
+        // Always starts at 0 — receive it through Stock Intake next, which
+        // records the intake history and purchase expense at the same time.
+        stock: 0,
         active: true,
         createdAt: now,
         updatedAt: now,
@@ -166,14 +171,12 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
         </div>
         <div>
           <Label>Stock Quantity</Label>
-          {isEdit ? (
-            <>
-              <Input type="number" value={form.stock} disabled />
-              <p className="mt-1 text-xs text-ink-muted">Adjust stock from the Stock Intake page.</p>
-            </>
-          ) : (
-            <Input type="number" min={0} value={form.stock} onChange={(e) => setForm({ ...form, stock: Number(e.target.value) })} />
-          )}
+          <Input type="number" value={form.stock} disabled />
+          <p className="mt-1 text-xs text-ink-muted">
+            {isEdit
+              ? 'Adjust stock from the Stock Intake page.'
+              : 'New products start at 0. Add stock next in Stock Intake — that way it always gets logged properly.'}
+          </p>
         </div>
         <div>
           <Label>Low Stock Threshold</Label>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, type Product } from '../../lib/db'
 import { enqueueSync } from '../../lib/sync/outbox'
@@ -16,6 +17,7 @@ import { ProductFormModal } from './ProductFormModal'
 export function InventoryPage() {
   const { user } = useAuth()
   const { show } = useToast()
+  const navigate = useNavigate()
   const { triggerUndo } = useUndo()
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('All')
@@ -114,7 +116,15 @@ export function InventoryPage() {
         {filtered.length === 0 && <p className="p-6 text-center text-sm text-ink-muted">No products match your filters.</p>}
       </div>
 
-      {editing && <ProductFormModal product={editing === 'new' ? null : editing} onClose={() => setEditing(null)} />}
+      {editing && (
+        <ProductFormModal
+          product={editing === 'new' ? null : editing}
+          onClose={() => setEditing(null)}
+          onSaved={(newProductId) => {
+            navigate('/stock-intake', { state: { preselectProductId: newProductId } })
+          }}
+        />
+      )}
 
       <ConfirmDialog
         open={confirming !== null}
