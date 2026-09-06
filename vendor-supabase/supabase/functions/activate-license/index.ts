@@ -81,14 +81,18 @@ Deno.serve(async (req) => {
     if (updateError) return json({ error: 'Could not record activation. Try again.' }, 500)
   }
 
-  const cert = {
+  const cert: Record<string, unknown> = {
     businessName: license.business_name,
     licenseId: license.id,
     deviceId,
     issuedAt: Date.now(),
     expiresAt: null as number | null,
-    supabaseUrl: license.customer_supabase_url,
-    supabaseAnonKey: license.customer_supabase_anon_key,
+  }
+  // Local-first by default: only include cloud-sync credentials for a
+  // license that has separately opted into the cloud-backup add-on.
+  if (license.customer_supabase_url && license.customer_supabase_anon_key) {
+    cert.supabaseUrl = license.customer_supabase_url
+    cert.supabaseAnonKey = license.customer_supabase_anon_key
   }
 
   const certString = JSON.stringify(cert)

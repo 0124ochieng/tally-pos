@@ -15,8 +15,12 @@ export interface ActivationCert {
   deviceId: string
   issuedAt: number
   expiresAt: number | null
-  supabaseUrl: string
-  supabaseAnonKey: string
+  // Optional: this product is local-first by default (all data lives on
+  // the till's own computer). These are only present for an install that
+  // has separately opted into the cloud-backup add-on for that business —
+  // most installs will never have them.
+  supabaseUrl?: string
+  supabaseAnonKey?: string
 }
 
 function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {

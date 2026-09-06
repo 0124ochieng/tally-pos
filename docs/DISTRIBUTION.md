@@ -31,37 +31,38 @@ It matches the "one computer at a time, restructured per business" workflow.
 
 ## Per customer (repeat this for each new business)
 
-1. **Create a Supabase project for that customer** (their own data lives
-   here, isolated from every other customer). Run `supabase/schema.sql` in
-   it. Copy its project URL and anon key.
+This product is **local-first**: a customer's sales, inventory, and
+everything else live only on their own till PC (in a local database), never
+in the cloud. There is no per-customer Supabase project to create or pay
+for — the only cloud project involved anywhere in this process is your own
+vendor project from the one-time setup above, and it only ever sees a tiny
+license-activation request, never any business data.
 
-2. **Restructure the build for their business** — edit `.env`:
+1. **Restructure the build for their business** — edit `.env`:
    ```
    VITE_BUSINESS_NAME=Their Business Name
    VITE_ACTIVATION_ENDPOINT=<your vendor activate-license function URL>
    ```
    Remove/leave unset: `VITE_SKIP_ACTIVATION`, `VITE_SUPABASE_URL`,
-   `VITE_SUPABASE_ANON_KEY` (a real activated install gets its Supabase
-   credentials from the license, not from `.env`).
+   `VITE_SUPABASE_ANON_KEY` (these are dev-only; a real customer build never
+   needs them).
    Adjust anything else specific to them (seed categories in
    `src/data/seedProducts.ts` if you want a different starting catalogue —
    optional, since they can edit categories/products from Inventory anyway).
 
-3. **Issue their license key:**
+2. **Issue their license key:**
    ```
    VENDOR_SUPABASE_URL=<vendor project URL> \
    VENDOR_SUPABASE_SERVICE_KEY=<vendor project service-role key> \
      node vendor-tools/keygen.mjs \
        --business "Their Business Name" \
-       --customer-url "<their Supabase project URL>" \
-       --customer-anon-key "<their Supabase anon key>" \
        --devices 2
    ```
    This prints a `REA-XXXXX-XXXXX-XXXXX` key — that's what you hand to the
    customer (write it on their invoice/agreement, don't just text it insecurely
    if you can avoid it).
 
-4. **Build the installer:**
+3. **Build the installer:**
    ```
    npm run electron:build
    ```
@@ -69,12 +70,30 @@ It matches the "one computer at a time, restructured per business" workflow.
    you hand the customer — never the source folder, never a `.env` file,
    never a Supabase service-role key.
 
-5. **Install on their computer**, launch it, enter the license key on the
+4. **Install on their computer**, launch it, enter the license key on the
    Activation screen. That's the only step requiring internet — everything
-   after works fully offline.
+   after works fully offline, forever, since there's no cloud data
+   dependency in normal use.
 
-6. **Have them sign a license agreement** — see `docs/EULA-template.md`
+5. **Have them sign a license agreement** — see `docs/EULA-template.md`
    (get it reviewed by a lawyer before real use).
+
+### Keeping your vendor project awake
+
+Supabase's free tier pauses a project after 7 days with no API activity. If
+you go a week without a single new activation, the next one will fail until
+you un-pause it from the Supabase dashboard (a few seconds, but avoid the
+surprise). Set up a free weekly scheduled ping (e.g. a GitHub Actions cron
+hitting your `activate-license` function's health, or Supabase's own
+`pg_cron`) once you're relying on this for real sales — cheap insurance
+against an activation failing on a client's install day.
+
+### Cloud backup (not available yet)
+
+`customer_supabase_url`/`customer_supabase_anon_key` on a `licenses` row,
+and `keygen.mjs`'s `--customer-url`/`--customer-anon-key` flags, exist only
+as infrastructure for a possible future cloud-backup add-on. Leave them
+unset for every normal sale.
 
 ## If you need to move an install to a new computer
 

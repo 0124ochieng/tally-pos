@@ -7,8 +7,12 @@ create table if not exists licenses (
   id uuid primary key default gen_random_uuid(),
   license_key text not null unique,
   business_name text not null,
-  customer_supabase_url text not null,
-  customer_supabase_anon_key text not null,
+  -- Nullable: the product is local-first by default — a customer's sale
+  -- data lives only on their own till PC, never in a per-customer Supabase
+  -- project. These are only set for a business that separately opts into
+  -- a future cloud-backup add-on. Most licenses will never have these set.
+  customer_supabase_url text,
+  customer_supabase_anon_key text,
   device_limit integer not null default 2,
   activated_device_ids text[] not null default '{}',
   revoked boolean not null default false,

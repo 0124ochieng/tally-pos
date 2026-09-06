@@ -3,9 +3,13 @@
 //   VENDOR_SUPABASE_URL=... VENDOR_SUPABASE_SERVICE_KEY=... \
 //     node vendor-tools/keygen.mjs \
 //       --business "Hymes Gadgets" \
-//       --customer-url "https://xxxx.supabase.co" \
-//       --customer-anon-key "eyJ..." \
 //       --devices 2
+//
+// The product is local-first by default — a customer's sale data lives
+// only on their own till PC, so no per-customer Supabase project is
+// needed for a normal sale. Only pass --customer-url/--customer-anon-key
+// if this specific business has separately paid for the cloud-backup
+// add-on (not available yet — infrastructure only).
 //
 // Writes one row to your vendor project's `licenses` table and prints the
 // key to hand to the customer. VENDOR_SUPABASE_SERVICE_KEY is your vendor
@@ -39,8 +43,8 @@ function generateLicenseKey() {
 
 async function main() {
   const { business, customerUrl, customerAnonKey, devices } = parseArgs()
-  if (!business || !customerUrl || !customerAnonKey) {
-    console.error('Usage: node vendor-tools/keygen.mjs --business "Name" --customer-url "..." --customer-anon-key "..." [--devices 2]')
+  if (!business) {
+    console.error('Usage: node vendor-tools/keygen.mjs --business "Name" [--devices 2]')
     process.exit(1)
   }
 
@@ -57,8 +61,8 @@ async function main() {
   const { error } = await supabase.from('licenses').insert({
     license_key: licenseKey,
     business_name: business,
-    customer_supabase_url: customerUrl,
-    customer_supabase_anon_key: customerAnonKey,
+    customer_supabase_url: customerUrl ?? null,
+    customer_supabase_anon_key: customerAnonKey ?? null,
     device_limit: devices,
     activated_device_ids: [],
     revoked: false,
