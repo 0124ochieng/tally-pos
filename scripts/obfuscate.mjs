@@ -1,8 +1,18 @@
 // Runs after `vite build`, before electron-builder packages the app.
-// Obfuscates only the app's own bundled code (dist/assets/index-*.js) —
-// not third-party chunks like exceljs (already minified, not proprietary,
-// obfuscating it would only slow the build for no benefit) and not the
-// service worker/workbox files (obfuscating those risks breaking them).
+// Obfuscates the app's own bundled code — not vendored third-party
+// chunks (already minified, not proprietary, obfuscating them would
+// only slow the build for no benefit) and not the service worker files.
+//
+// Some pages (Dashboard, Reports) are lazy-loaded into their own chunks
+// (see src/App.tsx) instead of living inside index-*.js, so this can't
+// just target one filename prefix — it obfuscates every chunk EXCEPT the
+// ones known to be pure vendor code. A lazy chunk built purely from our
+// own component code (e.g. DashboardPage-*.js) gets fully obfuscated;
+// one that also happens to bundle a large vendor lib alongside our code
+// (e.g. the chart components, which pull in recharts) still gets
+// obfuscated too — the point is protecting the first-party logic mixed
+// into it, even if that costs a bit more build time on the vendor's own
+// machine (this never runs on a customer's PC).
 //
 // This raises the bar against casual reverse engineering; it does not make
 // the code unreadable to a determined, skilled attacker — see the
@@ -14,6 +24,10 @@ import JavaScriptObfuscator from 'javascript-obfuscator'
 
 const ASSETS_DIR = join(process.cwd(), 'dist', 'assets')
 
+// Chunk name prefixes known to be pure vendored/build-tool code, never
+// our own source — skip these on purpose (see comment above).
+const VENDOR_CHUNK_PREFIXES = ['exceljs', 'rolldown-runtime', 'workbox-']
+
 function main() {
   let files
   try {
@@ -23,9 +37,11 @@ function main() {
     process.exit(1)
   }
 
-  const targets = files.filter((f) => f.startsWith('index-') && f.endsWith('.js'))
+  const targets = files.filter(
+    (f) => f.endsWith('.js') && !VENDOR_CHUNK_PREFIXES.some((prefix) => f.startsWith(prefix)),
+  )
   if (targets.length === 0) {
-    console.warn('No index-*.js bundle found to obfuscate.')
+    console.warn('No app JS bundle found to obfuscate.')
     return
   }
 

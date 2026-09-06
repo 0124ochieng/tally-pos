@@ -9,11 +9,29 @@
 -- After running this, copy your project URL + anon key into .env (see
 -- .env.example) and the app will start syncing automatically.
 --
+-- This project is now optional infrastructure, not the default: the app
+-- is local-first (see docs/DISTRIBUTION.md) and most installs never have
+-- a cloud project configured at all. Only relevant if a business
+-- separately opts into a future cloud-sync/backup add-on.
+--
 -- Note on access control: this phase uses local PIN login on each device
 -- (works offline, appropriate for a shared shop terminal) rather than
 -- per-user Supabase Auth, so RLS below is permissive for the anon key and
 -- access control (admin vs staff, cost price visibility) is enforced in
 -- the app UI. Tighten this once Supabase Auth is wired up for the phone app.
+--
+-- Known accepted trade-off: `users.pinHash`/`pinSalt` MUST be readable via
+-- the anon key so a replacement/new device can pull them down and log in
+-- offline afterwards (see hydrateFromCloudIfAvailable() in
+-- src/lib/sync/syncService.ts) — there's no per-user Supabase Auth to
+-- authenticate that read instead. Whoever holds this project's anon key
+-- (extracted from one specific customer's installed app, e.g. via
+-- DevTools with REACH_POS_DEBUG=1) could pull every PIN hash and offline-
+-- brute-force it — a 4-digit PIN's keyspace is only 10,000 guesses, so no
+-- realistic hashing cost protects it once the hash is exfiltrated. This
+-- is exactly why cloud sync now defaults to off for every install: keep
+-- it that way unless a business has a real need for multi-device sync,
+-- and treat that business's anon key as sensitive if it's ever enabled.
 
 create table if not exists users (
   id text primary key,
