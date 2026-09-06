@@ -4,6 +4,18 @@ const fs = require('node:fs')
 const os = require('node:os')
 const crypto = require('node:crypto')
 const { machineIdSync } = require('node-machine-id')
+const { autoUpdater } = require('electron-updater')
+
+// Electron's default userData folder is named after productName, which is
+// deliberately different for every customer build (see
+// electron-builder.config.cjs). If that were left alone, a customer's
+// local database would live in a folder named after their business —
+// harmless on its own, but it means an update that ever changed how
+// productName gets computed could make the app start looking in a
+// different folder and find no data at all. Pinning this to a fixed name
+// keeps every install's data path stable across every future update,
+// forever, independent of branding. Must be set before app is ready.
+app.setPath('userData', path.join(app.getPath('appData'), 'ReachPOSData'))
 
 const isDev = !app.isPackaged
 // Escape hatch for diagnosing a customer's already-installed build (e.g. a
@@ -103,11 +115,43 @@ ipcMain.handle('append-deletion-log', (_event, line) => {
   }
 })
 
+// Auto-update: only meaningful once electron-builder.config.cjs has a
+// `publish` block (i.e. VITE_UPDATE_URL was set at build time) — otherwise
+// electron-updater has no feed to check and every call below simply
+// rejects quietly, which is exactly the desired no-op for a build that
+// hasn't opted into this yet. Downloads happen silently in the background;
+// the renderer is only told once the update is fully downloaded and ready,
+// so installing it is a deliberate "restart now" action, never a surprise
+// interruption mid-sale.
+autoUpdater.autoDownload = true
+autoUpdater.autoInstallOnAppQuit = false
+
+autoUpdater.on('update-downloaded', () => {
+  for (const win of BrowserWindow.getAllWindows()) win.webContents.send('update-ready')
+})
+
+function checkForUpdatesQuietly() {
+  if (isDev) return
+  autoUpdater.checkForUpdates().catch(() => {
+    // No update feed configured, or no internet right now — both are
+    // completely normal for this product and never worth bothering anyone
+    // about. It'll just try again on the next scheduled check.
+  })
+}
+
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall()
+})
+
+const FOUR_HOURS_MS = 4 * 60 * 60 * 1000
+
 app.whenReady().then(() => {
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+  checkForUpdatesQuietly()
+  setInterval(checkForUpdatesQuietly, FOUR_HOURS_MS)
 })
 
 app.on('window-all-closed', () => {

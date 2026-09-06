@@ -95,6 +95,36 @@ and `keygen.mjs`'s `--customer-url`/`--customer-anon-key` flags, exist only
 as infrastructure for a possible future cloud-backup add-on. Leave them
 unset for every normal sale.
 
+## Pushing a bug/security fix to installs already out in the field
+
+Every customer gets their own `productName` (branding), but `appId` in
+`electron-builder.config.cjs` is deliberately the same for every build,
+forever — that's what lets one shared update feed serve every customer at
+once, and it's also why the app's local database always lives in the same
+fixed folder (`ReachPOSData` under Windows' AppData) no matter whose build
+it is. Don't ever make `appId` or that fixed folder name customer-specific
+— doing so would break updates and could make an existing install's data
+look like it disappeared.
+
+To ship an update:
+
+1. Put your release files (an installer + `.env`'s `VITE_UPDATE_URL`
+   pointing at where you'll host them) on any static HTTPS file host — a
+   public Supabase Storage bucket, S3, Cloudflare R2, anywhere. Set
+   `VITE_UPDATE_URL` in `.env` to that URL.
+2. Bump the version in `package.json`, fix whatever needed fixing, then
+   `npm run electron:build`. Electron-builder writes both the installer and
+   a `latest.yml` file into `release/` — upload BOTH to the host from step 1.
+3. Every installed copy checks that URL automatically (on launch, then
+   every 4 hours) and downloads the update quietly in the background. Once
+   it's fully downloaded, the app shows a "restart to update" prompt — it
+   never interrupts someone mid-sale on its own. Installing just swaps the
+   app's own files; the local database (sales, inventory, everything) lives
+   in a completely separate folder untouched by this process.
+4. A build with `VITE_UPDATE_URL` left empty never checks for updates at
+   all — no error, just silently skipped. Fine for early builds before
+   you've set up hosting; just remember to fill it in once you have.
+
 ## If you need to move an install to a new computer
 
 Their license key still works up to its device limit (default 2). If
