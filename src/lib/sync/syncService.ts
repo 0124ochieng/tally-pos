@@ -137,27 +137,37 @@ function startRealtimePull() {
   if (!getIsCloudConfigured() || !supabase) return
 
   for (const tableName of SYNCED_TABLES) {
-    supabase
-      .channel(`public:${tableName}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, async (payload) => {
-        const table = db.table(tableName)
-        if (payload.eventType === 'DELETE') {
-          const oldRow = payload.old as { id?: string }
-          if (oldRow?.id) await table.delete(oldRow.id)
-          return
-        }
-        const incoming = payload.new as { id: string; updatedAt?: number }
-        // Only tables with an updatedAt (products/categories/expenseCategories)
-        // can be version-compared; for those, don't let an older write that
-        // arrives late (e.g. a device reconnecting after being offline)
-        // clobber a newer local edit made in the meantime.
-        if (typeof incoming.updatedAt === 'number') {
-          const local = (await table.get(incoming.id)) as { updatedAt?: number } | undefined
-          if (local && typeof local.updatedAt === 'number' && local.updatedAt > incoming.updatedAt) return
-        }
-        await table.put(incoming)
-      })
-      .subscribe()
+    // Cloud sync is optional, best-effort infrastructure — a problem
+    // subscribing to one table (or a client-library hiccup) should never
+    // be able to crash the app for someone who's just trying to ring up a
+    // sale. getIsCloudConfigured() already guards against a malformed
+    // project URL (see lib/supabase.ts), but this stays defensive against
+    // anything else that could go wrong here in the future too.
+    try {
+      supabase
+        .channel(`public:${tableName}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: tableName }, async (payload) => {
+          const table = db.table(tableName)
+          if (payload.eventType === 'DELETE') {
+            const oldRow = payload.old as { id?: string }
+            if (oldRow?.id) await table.delete(oldRow.id)
+            return
+          }
+          const incoming = payload.new as { id: string; updatedAt?: number }
+          // Only tables with an updatedAt (products/categories/expenseCategories)
+          // can be version-compared; for those, don't let an older write that
+          // arrives late (e.g. a device reconnecting after being offline)
+          // clobber a newer local edit made in the meantime.
+          if (typeof incoming.updatedAt === 'number') {
+            const local = (await table.get(incoming.id)) as { updatedAt?: number } | undefined
+            if (local && typeof local.updatedAt === 'number' && local.updatedAt > incoming.updatedAt) return
+          }
+          await table.put(incoming)
+        })
+        .subscribe()
+    } catch (err) {
+      console.error(`Could not subscribe to realtime updates for "${tableName}" — continuing without it.`, err)
+    }
   }
 }
 

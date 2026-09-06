@@ -35,10 +35,29 @@ export function LicenseGate({ children }: { children: ReactNode }) {
             if (!cancelled) setPhase('unactivated')
             return
           }
-          initSupabase(result.cert.supabaseUrl, result.cert.supabaseAnonKey)
+          // Cloud sync is optional, best-effort infrastructure (most
+          // installs are local-only — see docs/DISTRIBUTION.md). A bad or
+          // stale credential on one specific license record must never be
+          // able to stop the till from opening at all, so nothing from
+          // here on is allowed to throw past this block — initSupabase()
+          // itself already fails safe to "not configured" on a bad URL,
+          // this is a second, independent backstop in case anything else
+          // in the cloud-sync setup below goes wrong in a way that
+          // wasn't anticipated.
+          try {
+            initSupabase(result.cert.supabaseUrl, result.cert.supabaseAnonKey)
+          } catch (err) {
+            console.error('Cloud sync setup failed — continuing in local-only mode.', err)
+          }
         }
 
-        const hydration = await hydrateFromCloudIfAvailable()
+        let hydration: Awaited<ReturnType<typeof hydrateFromCloudIfAvailable>> = 'confirmed-empty'
+        try {
+          hydration = await hydrateFromCloudIfAvailable()
+        } catch (err) {
+          console.error('Could not check cloud data before starting up — continuing locally.', err)
+          hydration = 'unavailable'
+        }
         if (hydration === 'unavailable') {
           throw new Error(
             "Couldn't check your data before starting up. Connect to the internet and restart — " +
@@ -49,7 +68,11 @@ export function LicenseGate({ children }: { children: ReactNode }) {
           await seedDatabaseIfEmpty()
         }
         await seedExpenseCategoriesIfEmpty()
-        startSyncService()
+        try {
+          startSyncService()
+        } catch (err) {
+          console.error('Could not start cloud sync — continuing in local-only mode.', err)
+        }
         if (!cancelled) setPhase('ready')
       } catch (err) {
         console.error('Startup failed', err)
