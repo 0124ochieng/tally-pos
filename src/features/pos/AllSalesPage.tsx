@@ -98,7 +98,11 @@ export function AllSalesPage() {
               ))}
             </tbody>
           </table>
-          {filtered.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No sales in this period.</p>}
+          {filtered.length === 0 && (
+            <p className="py-6 text-center text-sm text-ink-muted">
+              No sales in this period — completed sales will show up here as soon as they are made.
+            </p>
+          )}
         </CardBody>
       </Card>
 

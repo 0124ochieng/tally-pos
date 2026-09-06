@@ -110,18 +110,42 @@ export function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Revenue" value={`KES ${sumSales(scoped).toLocaleString()}`} tone="gold" />
-        <StatTile label="Cost of Goods" value={`KES ${profit.cost.toLocaleString()}`} />
-        <StatTile label="Profit" value={`KES ${profit.profit.toLocaleString()}`} tone="gold" sublabel={profit.revenue ? `${Math.round((profit.profit / profit.revenue) * 100)}% margin` : undefined} />
-        <StatTile label="Transactions" value={String(scoped.length)} />
+      {/* The two numbers a shopkeeper actually opens this page for —
+          everything else is supporting detail, so these two get to be big. */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border-2 border-gold-300 bg-surface p-6 transition-colors dark:border-gold-500/40">
+          <p className="text-sm font-medium text-ink-secondary">Revenue</p>
+          <p className="mt-1 text-3xl font-extrabold tracking-tight text-ink">KES {sumSales(scoped).toLocaleString()}</p>
+          <p className="mt-1 text-xs text-ink-muted">Everything collected from sales this period</p>
+        </div>
+        <div className={`rounded-2xl border-2 bg-surface p-6 transition-colors ${netProfit >= 0 ? 'border-gold-300 dark:border-gold-500/40' : 'border-coral-300 dark:border-coral-500/40'}`}>
+          <p className="text-sm font-medium text-ink-secondary">Net Profit</p>
+          <p className={`mt-1 text-3xl font-extrabold tracking-tight ${netProfit >= 0 ? 'text-ink' : 'text-coral-600 dark:text-coral-400'}`}>KES {netProfit.toLocaleString()}</p>
+          <p className="mt-1 text-xs text-ink-muted">What's left after cost of goods and expenses</p>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile label="Cash Sales" value={`KES ${cashTotal.toLocaleString()}`} tone="cyan" />
-        <StatTile label="M-Pesa Sales" value={`KES ${mpesaTotal.toLocaleString()}`} tone="cyan" />
-        <StatTile label="Expenses" value={`KES ${sumExpenses(scopedExpenses).toLocaleString()}`} tone="coral" />
-        <StatTile label="Net Profit" value={`KES ${netProfit.toLocaleString()}`} tone={netProfit >= 0 ? 'gold' : 'coral'} />
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">Sales</p>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <StatTile label="Cash Sales" value={`KES ${cashTotal.toLocaleString()}`} tone="cyan" sublabel="Part of revenue" />
+          <StatTile label="M-Pesa Sales" value={`KES ${mpesaTotal.toLocaleString()}`} tone="cyan" sublabel="Part of revenue" />
+          <StatTile label="Transactions" value={String(scoped.length)} />
+        </div>
+      </div>
+
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-muted">Costs &amp; Profit</p>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          <StatTile label="Cost of Goods" value={`KES ${profit.cost.toLocaleString()}`} sublabel="What you paid for what sold" />
+          <StatTile
+            label="Gross Profit"
+            value={`KES ${profit.profit.toLocaleString()}`}
+            tone="gold"
+            sublabel={profit.revenue ? `${Math.round((profit.profit / profit.revenue) * 100)}% margin — before expenses` : 'Revenue minus cost of goods'}
+          />
+          <StatTile label="Expenses" value={`KES ${sumExpenses(scopedExpenses).toLocaleString()}`} tone="coral" sublabel="Rent, wages, and other costs" />
+        </div>
       </div>
 
       <Card>
@@ -152,7 +176,11 @@ export function ReportsPage() {
               ))}
             </tbody>
           </table>
-          {scoped.length === 0 && <p className="py-6 text-center text-sm text-ink-muted">No sales in this period.</p>}
+          {scoped.length === 0 && (
+            <p className="py-6 text-center text-sm text-ink-muted">
+              No sales in this period — completed sales will show up here as soon as they are made.
+            </p>
+          )}
         </CardBody>
       </Card>
     </div>

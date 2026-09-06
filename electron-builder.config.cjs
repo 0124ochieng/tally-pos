@@ -28,7 +28,7 @@ module.exports = {
   // vanished. Keep this constant forever; only productName (cosmetic,
   // shown in the Start Menu / taskbar / installer) is branded per sale.
   appId: 'com.reachdigitalexperts.pos',
-  productName: `${businessName} POS`,
+  productName: `${businessName} - Tally`,
   copyright: 'Copyright © REACH Digital Experts',
   directories: { output: 'release' },
   files: ['dist/**/*', 'electron/**/*', 'package.json'],

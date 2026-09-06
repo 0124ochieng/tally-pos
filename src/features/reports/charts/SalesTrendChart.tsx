@@ -7,6 +7,15 @@ interface Point { date: string; total: number }
 export function SalesTrendChart({ data }: { data: Point[] }) {
   const { seriesGold, ink } = useChartPalette()
   const gradientId = `salesFill-${useId()}`
+  const hasData = data.some((d) => d.total > 0)
+
+  if (!hasData) {
+    return (
+      <div className="flex h-[240px] items-center justify-center text-center text-sm text-ink-muted">
+        No sales yet — this chart fills in once sales start coming through.
+      </div>
+    )
+  }
 
   return (
     <ResponsiveContainer width="100%" height={240}>

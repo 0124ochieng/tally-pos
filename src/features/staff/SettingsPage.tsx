@@ -148,7 +148,7 @@ export function SettingsPage() {
       <DataDangerZone />
 
       <p className="pt-2 text-center text-xs text-ink-muted">
-        POS by <span className="font-medium">REACH Digital Experts</span>
+        Tally POS · Built by <span className="font-medium">REACH</span>
       </p>
     </div>
   )

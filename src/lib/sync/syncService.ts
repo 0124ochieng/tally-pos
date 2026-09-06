@@ -8,17 +8,21 @@ export type SyncState = 'offline' | 'online-idle' | 'syncing' | 'error'
  * surface it as a real error instead of a silently-stuck "pending" count. */
 const MAX_AUTO_RETRIES = 8
 
-type Listener = (state: SyncState, pendingCount: number) => void
+type Listener = (state: SyncState, pendingCount: number, lastSyncedAt: number | null) => void
 
 let listeners: Listener[] = []
 let currentState: SyncState = navigator.onLine ? 'online-idle' : 'offline'
 let currentPending = 0
+let lastSyncedAt: number | null = null
 let intervalHandle: ReturnType<typeof setInterval> | null = null
 
 function notify(state: SyncState, pendingCount: number) {
   currentState = state
   currentPending = pendingCount
-  listeners.forEach((l) => l(state, pendingCount))
+  // "Synced" only ever means "fully caught up right now" — timestamp it
+  // whenever that's true, so the badge can say when, not just that it did.
+  if (state === 'online-idle' && pendingCount === 0) lastSyncedAt = Date.now()
+  listeners.forEach((l) => l(state, pendingCount, lastSyncedAt))
 }
 
 async function pendingCount() {
@@ -189,7 +193,7 @@ export function startSyncService() {
 
 export function subscribeSyncState(listener: Listener) {
   listeners.push(listener)
-  listener(currentState, currentPending)
+  listener(currentState, currentPending, lastSyncedAt)
   return () => {
     listeners = listeners.filter((l) => l !== listener)
   }

@@ -6,6 +6,7 @@ import { Input, Label } from './Input'
 import { useAuth } from '../../app/AuthContext'
 import { hashPin } from '../../lib/pin'
 import { exportFullReport } from '../../lib/exportService'
+import { getBusinessName } from '../../lib/settings'
 
 type Step = 'intro' | 'backup' | 'confirm-name' | 'confirm-pin' | 'working' | 'done'
 
@@ -82,7 +83,8 @@ export function DangerWizard({ open, onClose, title, deletes, keeps, extraWarnin
     }
   }
 
-  const nameMatches = user ? nameInput.trim().toLowerCase() === user.name.trim().toLowerCase() : false
+  const shopName = getBusinessName()
+  const nameMatches = nameInput.trim().toLowerCase() === shopName.trim().toLowerCase()
 
   return (
     <Modal open={open} onClose={step === 'working' ? () => {} : handleClose} title={title} width="md">
@@ -144,13 +146,13 @@ export function DangerWizard({ open, onClose, title, deletes, keeps, extraWarnin
       {step === 'confirm-name' && (
         <div className="space-y-4">
           <p className="text-sm text-ink-secondary">
-            To make sure this is really what you want, type your name exactly as shown to continue.
+            To make sure this is really what you want, type the shop name exactly as shown to continue.
           </p>
           <p className="rounded-xl border border-border bg-surface-alt px-3 py-2 text-center text-sm font-semibold text-ink">
-            {user?.name}
+            {shopName}
           </p>
           <div>
-            <Label>Type your name</Label>
+            <Label>Type the shop name</Label>
             <Input value={nameInput} onChange={(e) => setNameInput(e.target.value)} autoFocus />
           </div>
           <div className="flex justify-end gap-2 pt-2">

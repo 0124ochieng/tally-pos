@@ -54,7 +54,7 @@ export function Login() {
           Clear
         </Button>
       </div>
-      <p className="absolute bottom-3 right-4 z-10 text-xs text-ink-muted print:hidden">POS by REACH Digital Experts</p>
+      <p className="absolute bottom-3 right-4 z-10 text-xs text-ink-muted print:hidden">Built by REACH</p>
       <LiveClock />
     </div>
   )

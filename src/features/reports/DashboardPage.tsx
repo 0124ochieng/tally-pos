@@ -128,9 +128,9 @@ export function DashboardPage() {
             {lowStock.length === 0 && <p className="text-sm text-ink-muted">All stock levels healthy — nothing needs attention.</p>}
             <ul className="space-y-2">
               {lowStock.map((p) => (
-                <li key={p.id} className="flex items-center justify-between text-sm">
-                  <span className="text-ink">{p.name}</span>
-                  <Badge tone="coral">{p.stock} left</Badge>
+                <li key={p.id} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="min-w-0 truncate text-ink" title={p.name}>{p.name}</span>
+                  <Badge tone="coral" className="shrink-0">{p.stock} left</Badge>
                 </li>
               ))}
             </ul>
@@ -167,9 +167,9 @@ export function DashboardPage() {
           {top.length === 0 && <p className="text-sm text-ink-muted">No sales yet this month.</p>}
           <ul className="space-y-3">
             {top.map((p) => (
-              <li key={p.name} className="flex items-center justify-between text-sm">
-                <span className="text-ink">{p.name}</span>
-                <span className="text-ink-muted">{p.qty} sold · KES {p.revenue.toLocaleString()}</span>
+              <li key={p.name} className="flex items-center justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate text-ink" title={p.name}>{p.name}</span>
+                <span className="shrink-0 whitespace-nowrap text-ink-muted">{p.qty} sold · KES {p.revenue.toLocaleString()}</span>
               </li>
             ))}
           </ul>

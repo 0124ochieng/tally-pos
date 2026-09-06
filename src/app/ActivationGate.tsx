@@ -58,7 +58,7 @@ export function ActivationGate({ onActivated }: { onActivated: () => void }) {
           This needs an internet connection once. After activation, the app works fully offline.
         </p>
       </div>
-      <p className="absolute bottom-3 right-4 z-10 text-xs text-ink-muted">POS by REACH Digital Experts</p>
+      <p className="absolute bottom-3 right-4 z-10 text-xs text-ink-muted">Built by REACH</p>
     </div>
   )
 }
