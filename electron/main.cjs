@@ -24,7 +24,14 @@ const { autoUpdater } = require('electron-updater')
 // "database closed" error, and worse, a dev session could corrupt or
 // overwrite real business data. Never point these at the same folder.
 const isDev = !app.isPackaged
-app.setPath('userData', path.join(app.getPath('appData'), isDev ? 'ReachPOSData-Dev' : 'ReachPOSData'))
+// Escape hatch for testing a packaged build without ever touching a real
+// customer's data folder (e.g. reproducing a packaging-only bug). Unset by
+// default, so it changes nothing about normal dev or production behavior.
+if (process.env.REACH_POS_TEST_DATA_DIR) {
+  app.setPath('userData', process.env.REACH_POS_TEST_DATA_DIR)
+} else {
+  app.setPath('userData', path.join(app.getPath('appData'), isDev ? 'ReachPOSData-Dev' : 'ReachPOSData'))
+}
 // Escape hatch for diagnosing a customer's already-installed build (e.g. a
 // blank-screen bug that produces no visible error): launch the installed
 // .exe with REACH_POS_DEBUG=1 set to get DevTools back. Customers won't

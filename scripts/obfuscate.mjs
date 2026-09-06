@@ -2,21 +2,21 @@
 // Obfuscates the app's own bundled code — not vendored third-party
 // chunks (already minified, not proprietary, obfuscating them would
 // only slow the build for no benefit) and not the service worker files.
+// Everything currently builds into a single index-*.js (no route-based
+// code splitting — see the App.tsx history for why), so in practice
+// there's just one file to obfuscate, but this still filters by prefix
+// in case that ever changes.
 //
-// Some pages (Dashboard, Reports) are lazy-loaded into their own chunks
-// (see src/App.tsx) instead of living inside index-*.js, so this can't
-// just target one filename prefix — it obfuscates every chunk EXCEPT the
-// ones known to be pure vendor code. A lazy chunk built purely from our
-// own component code (e.g. DashboardPage-*.js) gets fully obfuscated;
-// one that also happens to bundle a large vendor lib alongside our code
-// (e.g. the chart components, which pull in recharts) still gets
-// obfuscated too — the point is protecting the first-party logic mixed
-// into it, even if that costs a bit more build time on the vendor's own
-// machine (this never runs on a customer's PC).
-//
-// This raises the bar against casual reverse engineering; it does not make
-// the code unreadable to a determined, skilled attacker — see the
-// discussion in the licensing plan for what actually protects this product.
+// controlFlowFlattening and deadCodeInjection are deliberately OFF: they
+// previously produced a real runtime bug (a Map lookup coming back
+// `undefined` — "Cannot read properties of undefined (reading 'has')")
+// that only showed up in the packaged, obfuscated build and only on the
+// admin Dashboard/Reports code paths, never in dev mode. stringArray +
+// hexadecimal identifiers still meaningfully raise the bar against casual
+// reverse engineering without touching control flow, which is the safer
+// trade-off here. This does not make the code unreadable to a determined,
+// skilled attacker — see the discussion in the licensing plan for what
+// actually protects this product.
 
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -50,10 +50,8 @@ function main() {
     const source = readFileSync(filePath, 'utf-8')
     const result = JavaScriptObfuscator.obfuscate(source, {
       compact: true,
-      controlFlowFlattening: true,
-      controlFlowFlatteningThreshold: 0.5,
-      deadCodeInjection: true,
-      deadCodeInjectionThreshold: 0.2,
+      controlFlowFlattening: false,
+      deadCodeInjection: false,
       stringArray: true,
       stringArrayEncoding: ['base64'],
       stringArrayThreshold: 0.75,

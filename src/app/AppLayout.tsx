@@ -104,7 +104,6 @@ export function AppLayout() {
       <aside className="m-3 flex w-60 flex-col rounded-3xl bg-sidebar transition-colors">
         <div className="px-5 py-6">
           <p className="truncate text-base font-bold text-white">{businessName}</p>
-          <p className="text-xs text-sidebar-ink-muted">Tally POS</p>
         </div>
         <nav aria-label="Main" className="flex-1 space-y-4 overflow-y-auto px-3">
           {isAdmin ? (

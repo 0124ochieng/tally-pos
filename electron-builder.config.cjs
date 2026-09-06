@@ -1,7 +1,5 @@
-// electron-builder config as a JS file (not JSON) specifically so the
-// product name can read VITE_BUSINESS_NAME from .env — this is the one
-// place you edit, once per customer, when restructuring this build for a
-// different business (see .env.example).
+// electron-builder config as a JS file (not JSON) so it can read
+// VITE_UPDATE_URL from .env directly — see .env.example.
 const fs = require('node:fs')
 const path = require('node:path')
 
@@ -15,20 +13,22 @@ function readEnvVar(name, fallback) {
   }
 }
 
-const businessName = readEnvVar('VITE_BUSINESS_NAME', 'My Shop')
 const updateUrl = readEnvVar('VITE_UPDATE_URL', '')
 
 module.exports = {
-  // Deliberately NOT derived from the business name, unlike productName
-  // below. This id is what Windows and electron-updater use to recognize
-  // "this install and that update are the same app" — if it changed per
-  // customer, one shared update feed could never work, and worse, Electron
-  // derives the userData folder from the app identity, so a mismatched id
-  // on update could make a customer's existing local database look like it
-  // vanished. Keep this constant forever; only productName (cosmetic,
-  // shown in the Start Menu / taskbar / installer) is branded per sale.
+  // Deliberately NOT derived from the business name. This id is what
+  // Windows and electron-updater use to recognize "this install and that
+  // update are the same app" — if it changed per customer, one shared
+  // update feed could never work, and worse, Electron derives the
+  // userData folder from the app identity, so a mismatched id on update
+  // could make a customer's existing local database look like it vanished.
+  // Keep this constant forever.
   appId: 'com.reachdigitalexperts.pos',
-  productName: `${businessName} - Tally`,
+  // The product's own name — "Tally" — stays literally that for every
+  // customer build. The business name shows up inside the app itself
+  // (sidebar, receipts, settings), never in the Start Menu/taskbar/installer
+  // identity, so one product name works across every white-labeled sale.
+  productName: 'Tally',
   copyright: 'Copyright © REACH Digital Experts',
   directories: { output: 'release' },
   files: ['dist/**/*', 'electron/**/*', 'package.json'],
