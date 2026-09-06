@@ -24,10 +24,14 @@ export function SyncStatusBadge() {
     setPending(count)
   }), [])
 
+  // "Synced" only ever means what it says — zero pending. Anything else
+  // shows its real state instead of a contradictory "Synced (N pending)".
+  const label = state === 'online-idle' && pending > 0 ? 'Syncing…' : labels[state]
+
   return (
     <div className="flex items-center gap-1.5 rounded-full border border-border bg-surface-alt px-3 py-1 text-xs text-ink-secondary">
       <span className={`h-2 w-2 rounded-full ${dotClasses[state]}`} />
-      {labels[state]}
+      {label}
       {pending > 0 && state !== 'syncing' && <span className="text-ink-muted">({pending} pending)</span>}
     </div>
   )

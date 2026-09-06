@@ -3,14 +3,21 @@ import { getSupabase, getIsCloudConfigured } from '../supabase'
 
 export type SyncState = 'offline' | 'online-idle' | 'syncing' | 'error'
 
+/** After this many failed attempts, stop retrying an entry automatically
+ * every 15s (it's very unlikely a bad payload starts succeeding) and
+ * surface it as a real error instead of a silently-stuck "pending" count. */
+const MAX_AUTO_RETRIES = 8
+
 type Listener = (state: SyncState, pendingCount: number) => void
 
 let listeners: Listener[] = []
 let currentState: SyncState = navigator.onLine ? 'online-idle' : 'offline'
+let currentPending = 0
 let intervalHandle: ReturnType<typeof setInterval> | null = null
 
 function notify(state: SyncState, pendingCount: number) {
   currentState = state
+  currentPending = pendingCount
   listeners.forEach((l) => l(state, pendingCount))
 }
 
@@ -38,9 +45,15 @@ async function drainOutbox() {
     return
   }
 
+  // Entries that have already failed too many times are left alone this
+  // round — no point hammering the network for a payload that isn't going
+  // to start working — but they still count towards the total so the user
+  // sees an honest number, not a silently-stuck "pending".
+  const toAttempt = pending.filter((e) => (e.attempts ?? 0) < MAX_AUTO_RETRIES)
+
   notify('syncing', pending.length)
 
-  for (const entry of pending) {
+  for (const entry of toAttempt) {
     try {
       if (entry.op === 'upsert') {
         const { error } = await supabase.from(entry.table).upsert(entry.payload as object)
@@ -51,16 +64,23 @@ async function drainOutbox() {
         if (error) throw error
       }
       await db.outbox.update(entry.id, { synced: true })
-    } catch {
-      // Leave unsynced; retry on next drain. One failure shouldn't block the rest.
+    } catch (err) {
+      // Leave unsynced; retry on next drain (up to the cap above). One
+      // failure shouldn't block the rest of the batch.
+      await db.outbox.update(entry.id, {
+        attempts: (entry.attempts ?? 0) + 1,
+        lastError: err instanceof Error ? err.message : String(err),
+      })
       continue
     }
   }
 
-  const stillPending = (await db.outbox.toArray()).filter((e) => !e.synced)
+  const remaining = (await db.outbox.toArray()).filter((e) => !e.synced)
   const synced = (await db.outbox.toArray()).filter((e) => e.synced)
   await db.outbox.bulkDelete(synced.map((e) => e.id))
-  notify('online-idle', stillPending.length)
+
+  const stuck = remaining.filter((e) => (e.attempts ?? 0) >= MAX_AUTO_RETRIES)
+  notify(stuck.length > 0 ? 'error' : 'online-idle', remaining.length)
 }
 
 const SYNCED_TABLES = [
@@ -154,7 +174,7 @@ export function startSyncService() {
 
 export function subscribeSyncState(listener: Listener) {
   listeners.push(listener)
-  listener(currentState, 0)
+  listener(currentState, currentPending)
   return () => {
     listeners = listeners.filter((l) => l !== listener)
   }

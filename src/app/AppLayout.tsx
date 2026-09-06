@@ -11,7 +11,9 @@ import { ThemeToggle } from '../components/ThemeToggle'
 import { LiveClock } from '../components/LiveClock'
 import { SwitchToAdminModal } from './SwitchToAdminModal'
 import { Badge } from '../components/ui/Badge'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { getBusinessName } from '../lib/settings'
+import { loadCart } from '../lib/cartPersistence'
 import { useInactivityLogout } from './useInactivityLogout'
 
 interface NavItem {
@@ -42,6 +44,7 @@ export function AppLayout() {
   const { user, logout, loading } = useAuth()
   const location = useLocation()
   const [switching, setSwitching] = useState(false)
+  const [confirmSignOut, setConfirmSignOut] = useState(false)
   useInactivityLogout()
 
   if (loading) return null
@@ -50,6 +53,14 @@ export function AppLayout() {
   const nav = user.role === 'admin' ? adminNav : staffNav
   const isSellPage = location.pathname === '/sell'
   const businessName = getBusinessName()
+
+  function handleSignOutClick() {
+    if (loadCart().length > 0) {
+      setConfirmSignOut(true)
+    } else {
+      logout()
+    }
+  }
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-page">
@@ -100,7 +111,7 @@ export function AppLayout() {
               </button>
             )}
             <button
-              onClick={logout}
+              onClick={handleSignOutClick}
               className="flex items-center gap-1.5 rounded-xl border border-border bg-surface px-3 py-2 text-xs font-medium text-coral-500 transition-colors hover:bg-coral-50 dark:hover:bg-coral-900/20"
             >
               <LogOut size={14} /> Sign Out
@@ -114,6 +125,18 @@ export function AppLayout() {
       </div>
 
       {switching && <SwitchToAdminModal onClose={() => setSwitching(false)} />}
+      <ConfirmDialog
+        open={confirmSignOut}
+        title="Sign out with items still in the cart?"
+        message="There's a sale in progress that hasn't been paid for yet. Signing out will clear it — the next person to sign in will start with an empty cart. Sign out anyway, or go back and finish the sale?"
+        confirmLabel="Sign out anyway"
+        destructive
+        onConfirm={() => {
+          setConfirmSignOut(false)
+          logout()
+        }}
+        onCancel={() => setConfirmSignOut(false)}
+      />
       <LiveClock />
     </div>
   )

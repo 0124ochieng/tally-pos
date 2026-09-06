@@ -166,6 +166,12 @@ export interface OutboxEntry {
   payload: unknown
   createdAt: number
   synced: boolean
+  /** How many times we've tried and failed to push this entry. Used to
+   * stop hammering the network for an entry that will never succeed
+   * (e.g. a permanently rejected payload) and to surface a real error
+   * to the user instead of retrying forever in silence. */
+  attempts?: number
+  lastError?: string
 }
 
 class HymesDB extends Dexie {

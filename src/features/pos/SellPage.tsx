@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ArrowLeft, Search, Trash2, Minus, Plus } from 'lucide-react'
+import { ArrowLeft, Search, Trash2, Minus, Plus, X } from 'lucide-react'
 import { db, type Product } from '../../lib/db'
 import { useAuth } from '../../app/AuthContext'
 import { useToast } from '../../components/ui/Toast'
 import { Input } from '../../components/ui/Input'
 import { Badge } from '../../components/ui/Badge'
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog'
 import { getCategoryIcon } from '../../lib/iconMap'
 import type { CartLine } from '../../lib/salesService'
 import { loadCart, saveCart, clearCart } from '../../lib/cartPersistence'
@@ -27,6 +28,7 @@ export function SellPage() {
   const [cart, setCart] = useState<CartLine[]>(() => loadCart())
   const [payOpen, setPayOpen] = useState(false)
   const [imeiProduct, setImeiProduct] = useState<Product | null>(null)
+  const [confirmClear, setConfirmClear] = useState(false)
 
   // Resume an interrupted sale (sign-out, inactivity timeout, Switch to
   // Admin) rather than silently discarding items already on the counter.
@@ -104,6 +106,12 @@ export function SellPage() {
 
   function removeLine(index: number) {
     setCart((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  function handleClearCart() {
+    setCart([])
+    clearCart()
+    setConfirmClear(false)
   }
 
   const subtotal = cart.reduce((sum, l) => sum + l.qty * l.unitPrice, 0)
@@ -202,9 +210,19 @@ export function SellPage() {
       </div>
 
       <div className="flex h-full w-96 shrink-0 flex-col rounded-2xl border border-border bg-surface transition-colors">
-        <div className="border-b border-border px-4 py-3">
-          <h2 className="text-sm font-semibold text-ink">Current Sale</h2>
-          <p className="text-xs text-ink-muted">{cart.length} item{cart.length === 1 ? '' : 's'}</p>
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div>
+            <h2 className="text-sm font-semibold text-ink">Current Sale</h2>
+            <p className="text-xs text-ink-muted">{cart.length} item{cart.length === 1 ? '' : 's'}</p>
+          </div>
+          {cart.length > 0 && (
+            <button
+              onClick={() => setConfirmClear(true)}
+              className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-ink-muted transition-colors hover:bg-coral-100 hover:text-coral-600"
+            >
+              <X size={13} /> Clear cart
+            </button>
+          )}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -256,6 +274,16 @@ export function SellPage() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        open={confirmClear}
+        title="Clear the cart?"
+        message="This removes every item from the cart. You can't undo this."
+        confirmLabel="Clear cart"
+        destructive
+        onConfirm={handleClearCart}
+        onCancel={() => setConfirmClear(false)}
+      />
 
       {payOpen && (
         <PaymentModal

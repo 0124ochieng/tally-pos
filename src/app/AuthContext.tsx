@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { db, type User } from '../lib/db'
 import { hashPin } from '../lib/pin'
+import { clearCart } from '../lib/cartPersistence'
 
 interface AuthContextValue {
   user: User | null
@@ -20,7 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function restore() {
-      const savedId = localStorage.getItem(SESSION_KEY)
+      const savedId = sessionStorage.getItem(SESSION_KEY)
       if (savedId) {
         const savedUser = await db.users.get(savedId)
         if (savedUser && savedUser.active) setUser(savedUser)
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const hash = await hashPin(pin, candidate.pinSalt)
       if (hash === candidate.pinHash) {
         setUser(candidate)
-        localStorage.setItem(SESSION_KEY, candidate.id)
+        sessionStorage.setItem(SESSION_KEY, candidate.id)
         return { ok: true }
       }
     }
@@ -45,12 +46,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     setUser(null)
-    localStorage.removeItem(SESSION_KEY)
+    sessionStorage.removeItem(SESSION_KEY)
+    // A sale that never got paid for shouldn't reappear for whoever logs
+    // in next — clear it here so every logout path (sign-out, idle
+    // timeout) behaves the same way.
+    clearCart()
   }
 
   function switchUser(nextUser: User) {
     setUser(nextUser)
-    localStorage.setItem(SESSION_KEY, nextUser.id)
+    sessionStorage.setItem(SESSION_KEY, nextUser.id)
   }
 
   return (
