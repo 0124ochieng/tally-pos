@@ -4,8 +4,16 @@ import { initSupabase } from '../lib/supabase'
 import { seedDatabaseIfEmpty, seedExpenseCategoriesIfEmpty } from '../lib/seedDb'
 import { startSyncService, hydrateFromCloudIfAvailable } from '../lib/sync/syncService'
 import { ActivationGate } from './ActivationGate'
+import { SplashScreen } from '../components/SplashScreen'
 
 const SKIP_ACTIVATION = import.meta.env.VITE_SKIP_ACTIVATION === 'true'
+
+// Long enough to read as a deliberate, polished entrance rather than a
+// flicker (even on a machine so fast the real bootstrap below finishes
+// almost instantly); short enough that nobody's ever kept waiting on it —
+// standard splash-screen territory (~2s all in, including the fade-out).
+const MIN_SPLASH_MS = 1900
+const SPLASH_EXIT_MS = 420
 
 type Phase = 'checking' | 'unactivated' | 'ready' | { status: 'error'; message: string }
 
@@ -21,6 +29,24 @@ type Phase = 'checking' | 'unactivated' | 'ready' | { status: 'error'; message: 
  * no error surfaced anywhere (not even to an ErrorBoundary). */
 export function LicenseGate({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<Phase>('checking')
+
+  // Splash timing is deliberately independent of `phase` below — it must
+  // stay up at least MIN_SPLASH_MS even if bootstrap resolves instantly,
+  // and must stay up past MIN_SPLASH_MS if bootstrap is still running.
+  const [minSplashElapsed, setMinSplashElapsed] = useState(false)
+  const [showSplash, setShowSplash] = useState(true)
+  const splashExiting = phase !== 'checking' && minSplashElapsed
+
+  useEffect(() => {
+    const t = setTimeout(() => setMinSplashElapsed(true), MIN_SPLASH_MS)
+    return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    if (!splashExiting) return
+    const t = setTimeout(() => setShowSplash(false), SPLASH_EXIT_MS)
+    return () => clearTimeout(t)
+  }, [splashExiting])
 
   useEffect(() => {
     let cancelled = false
@@ -86,15 +112,18 @@ export function LicenseGate({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  if (phase === 'checking') return null
+  // Rendered underneath the splash overlay (not gated on it) so that once
+  // the splash starts fading out, it's revealing a screen that's already
+  // there — a crossfade, not a cut to blank. While phase is still
+  // 'checking' none of these match anything, so only the splash shows.
+  let content: ReactNode = null
   if (phase === 'unactivated') {
     // Reload rather than re-checking in place: it's the simplest way to
     // guarantee Supabase and the sync service initialize fresh with the
     // newly activated credentials.
-    return <ActivationGate onActivated={() => window.location.reload()} />
-  }
-  if (typeof phase === 'object') {
-    return (
+    content = <ActivationGate onActivated={() => window.location.reload()} />
+  } else if (typeof phase === 'object') {
+    content = (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-neutral-950 px-6 text-center text-neutral-100">
         <h1 className="text-lg font-bold">Couldn't start the app</h1>
         <p className="max-w-md text-sm text-neutral-400">
@@ -112,6 +141,14 @@ export function LicenseGate({ children }: { children: ReactNode }) {
         </button>
       </div>
     )
+  } else if (phase === 'ready') {
+    content = children
   }
-  return <>{children}</>
+
+  return (
+    <>
+      {content}
+      {showSplash && <SplashScreen exiting={splashExiting} />}
+    </>
+  )
 }

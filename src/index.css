@@ -171,6 +171,24 @@
   }
 }
 
+@layer utilities {
+  /* Startup splash only (see SplashScreen.tsx) — the icon's three paths
+     stagger in, then the wordmark follows, then the whole overlay fades to
+     reveal whatever screen was already rendering underneath it. */
+  @keyframes splash-icon-path {
+    from { opacity: 0; transform: scale(0.6) translateY(6px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  @keyframes splash-text-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes splash-glow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.55; }
+  }
+}
+
 @media print {
   body * {
     visibility: hidden;
