@@ -16,6 +16,20 @@ interface ProductFormModalProps {
   onSaved?: (productId: string, costPrice: number) => void
 }
 
+// The blank-SKU fallback used to pick a random 4-digit suffix with no
+// collision check — a 1-in-9000 chance per pair that grows fast with
+// catalog size (birthday paradox), silently giving two different products
+// the same SKU. Retrying against the existing SKU set closes that gap
+// without changing the format anyone's already relying on.
+function generateUniqueSku(existingSkus: string[]) {
+  const taken = new Set(existingSkus.map((s) => s.toLowerCase()))
+  let sku: string
+  do {
+    sku = `HG-${Math.floor(1000 + Math.random() * 9000)}`
+  } while (taken.has(sku.toLowerCase()))
+  return sku
+}
+
 function getFieldDefs(categoryById: Map<string, string>) {
   const formatCategory = (id: unknown) => categoryById.get(String(id)) ?? String(id)
   return [
@@ -112,7 +126,7 @@ export function ProductFormModal({ product, onClose, onSaved }: ProductFormModal
       show('Product updated')
     } else {
       const id = newId()
-      const sku = form.sku.trim() || `HG-${Math.floor(1000 + Math.random() * 9000)}`
+      const sku = form.sku.trim() || generateUniqueSku(products.map((p) => p.sku))
       const newProduct: Product = {
         id,
         name: form.name,

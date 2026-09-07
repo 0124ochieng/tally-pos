@@ -25,6 +25,7 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
   const [step, setStep] = useState<Step>('method')
   const [discount, setDiscount] = useState(0)
   const [tendered, setTendered] = useState(0)
+  const [mpesaRefInput, setMpesaRefInput] = useState('')
   const [confirming, setConfirming] = useState(false)
   const [sale, setSale] = useState<Sale | null>(null)
 
@@ -43,9 +44,10 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
   }
 
   async function finalizeMpesa() {
+    if (!mpesaRefInput.trim()) return
     setConfirming(true)
     try {
-      const { mpesaRef } = await confirmMpesaPayment(total)
+      const { mpesaRef } = await confirmMpesaPayment(total, mpesaRefInput)
       const newSale = await completeSale({ cashierId, lines, discount, paymentMethod: 'mpesa', mpesaRef, amountTendered: null })
       setSale(newSale)
       setStep('receipt')
@@ -156,9 +158,21 @@ export function PaymentModal({ subtotal, cashierId, lines, onClose, onComplete }
             <span className="text-lg font-bold text-ink">KES {total.toLocaleString()}</span>
           </div>
           <p className="text-sm text-ink-secondary">
-            Once the M-Pesa text comes in on the till phone, tap the button below to finish the sale.
+            Once the M-Pesa text comes in on the till phone, type the confirmation code from it below.
           </p>
-          <Button className="w-full" size="lg" disabled={confirming} onClick={finalizeMpesa}>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-secondary">M-Pesa Confirmation Code</label>
+            <input
+              type="text"
+              value={mpesaRefInput}
+              onChange={(e) => setMpesaRefInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === 'Enter' && mpesaRefInput.trim() && finalizeMpesa()}
+              placeholder="e.g. QGH7X8Y9Z0"
+              className="h-12 w-full rounded-xl border border-border bg-surface px-4 text-lg font-semibold uppercase tracking-wide text-ink focus:border-gold-500 focus:outline-none focus:ring-2 focus:ring-gold-400/30"
+              autoFocus
+            />
+          </div>
+          <Button className="w-full" size="lg" disabled={confirming || !mpesaRefInput.trim()} onClick={finalizeMpesa}>
             <CheckCircle2 size={18} /> {confirming ? 'Confirming…' : 'Confirm Payment Received'}
           </Button>
         </div>

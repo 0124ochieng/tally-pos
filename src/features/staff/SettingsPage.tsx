@@ -11,6 +11,8 @@ import { Input, Label } from '../../components/ui/Input'
 import { getIsCloudConfigured } from '../../lib/supabase'
 import { checkLicense, type ActivationCert } from '../../lib/license'
 import { Badge } from '../../components/ui/Badge'
+import { RecoverySettings } from './RecoverySettings'
+import { DiagnosticsSettings } from './DiagnosticsSettings'
 import { DataDangerZone } from './DataDangerZone'
 import { playSound } from '../../lib/soundService'
 import { Volume2, VolumeX } from 'lucide-react'
@@ -144,6 +146,10 @@ export function SettingsPage() {
           </Button>
         </CardBody>
       </Card>
+
+      <RecoverySettings />
+
+      <DiagnosticsSettings />
 
       <DataDangerZone />
 

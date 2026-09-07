@@ -39,7 +39,14 @@ create table if not exists users (
   "pinHash" text not null,
   "pinSalt" text not null,
   role text not null check (role in ('admin', 'staff')),
-  active boolean not null default true
+  active boolean not null default true,
+  -- Optional self-service PIN-recovery code, set by an admin in
+  -- Settings → Security. Same accepted trade-off as pinHash/pinSalt above
+  -- (readable via anon key, offline-bruteforceable if exfiltrated) — a
+  -- 6-digit code is still a strict improvement over the 4-digit PIN it
+  -- protects, and this table already carries that risk today.
+  "recoveryCodeHash" text,
+  "recoveryCodeSalt" text
 );
 
 create table if not exists categories (

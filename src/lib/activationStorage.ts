@@ -16,6 +16,8 @@ declare global {
       setActivation: (data: StoredActivation) => Promise<boolean>
       clearActivation: () => Promise<boolean>
       appendDeletionLog: (line: string) => Promise<boolean>
+      appendDiagnosticLog: (message: string, stack?: string) => Promise<boolean>
+      readDiagnosticLog: () => Promise<string>
       onUpdateReady: (callback: () => void) => () => void
       installUpdate: () => Promise<void>
     }

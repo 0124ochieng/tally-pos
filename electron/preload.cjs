@@ -6,6 +6,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setActivation: (data) => ipcRenderer.invoke('set-activation', data),
   clearActivation: () => ipcRenderer.invoke('clear-activation'),
   appendDeletionLog: (line) => ipcRenderer.invoke('append-deletion-log', line),
+  appendDiagnosticLog: (message, stack) => ipcRenderer.invoke('append-diagnostic-log', { message, stack }),
+  readDiagnosticLog: () => ipcRenderer.invoke('read-diagnostic-log'),
   onUpdateReady: (callback) => {
     const listener = () => callback()
     ipcRenderer.on('update-ready', listener)

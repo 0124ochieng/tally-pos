@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { AlertTriangle, Banknote, Smartphone } from 'lucide-react'
+import { AlertTriangle, Banknote, Smartphone, ShieldQuestion, X } from 'lucide-react'
 import { db } from '../../lib/db'
+import { useAuth } from '../../app/AuthContext'
+import { hasRecoveryCode } from '../../lib/recovery'
 import { Card, CardBody, CardHeader, CardTitle } from '../../components/ui/Card'
+import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
 import { useDataChangedTick } from '../../lib/events'
 import {
@@ -51,6 +55,17 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
 export function DashboardPage() {
   useRefreshTick()
   useDataChangedTick()
+  const navigate = useNavigate()
+  const { user: currentUser } = useAuth()
+
+  // Session-only dismiss (not persisted) — reappears next login until the
+  // admin actually sets up a code, but doesn't nag again the rest of today.
+  const [nagDismissed, setNagDismissed] = useState(false)
+  const currentUserRecord = useLiveQuery(
+    () => (currentUser ? db.users.get(currentUser.id) : undefined),
+    [currentUser?.id],
+  )
+  const showRecoveryNag = !nagDismissed && currentUserRecord && !hasRecoveryCode(currentUserRecord)
 
   const products = useLiveQuery(() => db.products.toArray(), []) ?? []
   const categories = useLiveQuery(() => db.categories.toArray(), []) ?? []
@@ -90,6 +105,24 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-lg font-bold text-ink">Dashboard</h1>
+
+      {showRecoveryNag && (
+        <div className="flex items-center gap-3 rounded-2xl border border-gold-300 bg-gold-50 px-4 py-3 text-sm dark:border-gold-500/40 dark:bg-gold-900/20">
+          <ShieldQuestion size={18} className="shrink-0 text-gold-700 dark:text-gold-400" />
+          <p className="flex-1 text-ink-secondary">
+            You haven't set up a PIN recovery code yet — if you forget your PIN, you could be locked
+            out with no self-service way back in.
+          </p>
+          <Button size="sm" variant="secondary" onClick={() => navigate('/settings')}>Set It Up</Button>
+          <button
+            onClick={() => setNagDismissed(true)}
+            aria-label="Dismiss"
+            className="rounded-lg p-1 text-ink-muted hover:bg-surface-alt hover:text-ink"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
 
       {/* HERO — the one number an owner checks first each day */}
       <div data-tour="dashboard-hero" className="rounded-2xl border-2 border-gold-300 bg-surface p-6 transition-colors dark:border-gold-500/40">

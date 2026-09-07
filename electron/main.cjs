@@ -40,6 +40,11 @@ if (process.env.REACH_POS_TEST_DATA_DIR) {
 const debugEnabled = isDev || process.env.REACH_POS_DEBUG === '1'
 const ACTIVATION_FILE = () => path.join(app.getPath('userData'), 'activation.json')
 const DELETION_LOG_FILE = () => path.join(app.getPath('userData'), 'deletion-log.txt')
+const DIAGNOSTIC_LOG_FILE = () => path.join(app.getPath('userData'), 'diagnostic-log.txt')
+// Bounds how many crash/error entries the diagnostic log keeps — without
+// this, a machine that hits the same recurring error would grow this file
+// forever, the same unbounded-growth problem the sync outbox was fixed for.
+const MAX_DIAGNOSTIC_ENTRIES = 200
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -130,6 +135,42 @@ ipcMain.handle('append-deletion-log', (_event, line) => {
     return true
   } catch {
     return false
+  }
+})
+
+// Keeps only the most recent MAX_DIAGNOSTIC_ENTRIES "=== " blocks, dropping
+// the oldest first. Splitting on a lookahead for the delimiter (rather than
+// counting newlines) keeps each entry — including its multi-line stack
+// trace — intact as one unit.
+function trimDiagnosticLog(content) {
+  const entries = content.split(/(?=^=== )/m).filter(Boolean)
+  if (entries.length <= MAX_DIAGNOSTIC_ENTRIES) return content
+  return entries.slice(-MAX_DIAGNOSTIC_ENTRIES).join('')
+}
+
+// Written outside the app's own database, same reasoning as the deletion
+// log above: a crash caused by a corrupted/broken IndexedDB should still be
+// readable afterwards, which wouldn't be true if this lived inside it. The
+// main process (not the renderer) stamps the timestamp/app version/OS, so
+// this is trustworthy even if the renderer's own state is the thing that's
+// broken. Never carries business data — only error text and a stack trace.
+ipcMain.handle('append-diagnostic-log', (_event, { message, stack }) => {
+  try {
+    const header = `=== ${new Date().toISOString()} | v${app.getVersion()} | ${process.platform} ${os.release()} ===\n`
+    const body = `${message}\n${stack ? `${stack}\n` : ''}\n`
+    fs.appendFileSync(DIAGNOSTIC_LOG_FILE(), header + body)
+    fs.writeFileSync(DIAGNOSTIC_LOG_FILE(), trimDiagnosticLog(fs.readFileSync(DIAGNOSTIC_LOG_FILE(), 'utf-8')))
+    return true
+  } catch {
+    return false
+  }
+})
+
+ipcMain.handle('read-diagnostic-log', () => {
+  try {
+    return fs.readFileSync(DIAGNOSTIC_LOG_FILE(), 'utf-8')
+  } catch {
+    return ''
   }
 })
 

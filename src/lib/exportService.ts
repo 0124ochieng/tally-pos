@@ -25,6 +25,10 @@ export function downloadCSV(filename: string, columns: { key: string; label: str
   downloadBlob(new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' }), `${filename}.csv`)
 }
 
+export function downloadText(filename: string, content: string) {
+  downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8;' }), filename)
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')

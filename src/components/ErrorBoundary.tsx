@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { logDiagnostic } from '../lib/diagnostics'
 
 interface Props {
   children: ReactNode
@@ -22,6 +23,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error('Unhandled render error', error, info.componentStack)
+    logDiagnostic(`Unhandled render error: ${error.message}`, `${error.stack ?? ''}\n\nComponent stack:${info.componentStack ?? ''}`)
   }
 
   render() {

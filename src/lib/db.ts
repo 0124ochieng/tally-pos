@@ -19,6 +19,11 @@ export interface User {
   pinSalt: string
   role: Role
   active: boolean
+  /** Optional self-service "forgot PIN" recovery code, hashed the same way
+   * as pinHash/pinSalt. Only present once an admin sets one up in Settings
+   * → Security — most users never have these set. */
+  recoveryCodeHash?: string
+  recoveryCodeSalt?: string
 }
 
 export interface Category {
