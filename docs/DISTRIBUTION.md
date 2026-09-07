@@ -38,9 +38,16 @@ for — the only cloud project involved anywhere in this process is your own
 vendor project from the one-time setup above, and it only ever sees a tiny
 license-activation request, never any business data.
 
-1. **Restructure the build for their business** — don't just edit `.env` in
-   place (you'll overwrite the last customer's record with nothing to go
-   back to). Instead:
+1. **Restructure the build for their business — optional as of the latest
+   version.** Activation now seeds the shop's display name from their own
+   license (`businessName` on the signed cert, straight from what
+   `keygen.mjs` wrote to the `licenses` table) the first time they activate,
+   so a single generic build can be handed to every customer and each one's
+   name still shows up correctly with zero rebuild. Do this step only if you
+   want their name to also show up before activation (the "Set Up ___ POS"
+   screen) — cosmetic polish, not required. Don't just edit `.env` in place
+   (you'll overwrite the last customer's record with nothing to go back
+   to):
    ```
    cp customers/TEMPLATE.env customers/<slug>.env   # once, first time
    # fill in customers/<slug>.env with their business name

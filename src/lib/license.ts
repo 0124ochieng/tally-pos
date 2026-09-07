@@ -1,4 +1,5 @@
 import { getMachineId, readActivation, writeActivation, type StoredActivation } from './activationStorage'
+import { getSetting, setSetting } from './settings'
 
 // Replace after running `node vendor-tools/generate-vendor-keypair.mjs`.
 // This is a PUBLIC key — safe to ship in the app. It can only verify
@@ -97,5 +98,16 @@ export async function activateWithKey(licenseKey: string): Promise<{ ok: true } 
   }
 
   await writeActivation(stored)
+
+  // Seed the shop's display name from their own license the first time
+  // they activate. Without this, a build made generically (not
+  // restructured per customer via customers/<slug>.env) would show a
+  // meaningless default forever unless the owner happened to visit
+  // Settings and rename it themselves. Never overrides a name the shop's
+  // already set for itself — this only fills an empty one.
+  if (!getSetting('shopName')) {
+    setSetting('shopName', verified.businessName)
+  }
+
   return { ok: true }
 }
