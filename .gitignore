@@ -17,6 +17,12 @@ release
 *.local
 .env
 
+# Per-customer build records (business names/config) — kept locally
+# forever for reproducible rebuilds, but these are business records, not
+# source code. See customers/README.md.
+customers/*.env
+!customers/TEMPLATE.env
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

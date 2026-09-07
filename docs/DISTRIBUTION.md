@@ -38,11 +38,19 @@ for — the only cloud project involved anywhere in this process is your own
 vendor project from the one-time setup above, and it only ever sees a tiny
 license-activation request, never any business data.
 
-1. **Restructure the build for their business** — edit `.env`:
+1. **Restructure the build for their business** — don't just edit `.env` in
+   place (you'll overwrite the last customer's record with nothing to go
+   back to). Instead:
    ```
-   VITE_BUSINESS_NAME=Their Business Name
-   VITE_ACTIVATION_ENDPOINT=<your vendor activate-license function URL>
+   cp customers/TEMPLATE.env customers/<slug>.env   # once, first time
+   # fill in customers/<slug>.env with their business name
+   cp customers/<slug>.env .env
    ```
+   `customers/<slug>.env` is now the permanent record of what this
+   customer's build used — see `customers/README.md`. `.env` itself stays
+   gitignored and gets overwritten freely; the per-customer copy in
+   `customers/` is what you keep.
+
    Remove/leave unset: `VITE_SKIP_ACTIVATION`, `VITE_SUPABASE_URL`,
    `VITE_SUPABASE_ANON_KEY` (these are dev-only; a real customer build never
    needs them).
@@ -69,6 +77,12 @@ license-activation request, never any business data.
    Produces a Windows installer under `release/`. This is the ONLY thing
    you hand the customer — never the source folder, never a `.env` file,
    never a Supabase service-role key.
+
+   Tag the commit you built from — cheap, and it's the exact record of what
+   they got if you're ever comparing against a later bugfix build:
+   ```
+   git tag <slug>-$(date +%Y-%m-%d)
+   ```
 
 4. **Install on their computer**, launch it, enter the license key on the
    Activation screen. That's the only step requiring internet — everything
